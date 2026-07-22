@@ -1,0 +1,21 @@
+# Internal AI Process Assistant
+
+A portfolio project for building a practical internal AI assistant for document and data processing workflows.
+
+## Current phase
+
+Phase 0: Development environment setup.
+
+## Environment
+
+- Windows 11 host
+- VirtualBox
+- Ubuntu Server 26.04 LTS VM
+- VS Code Remote SSH
+- Git
+- Python
+- Docker and Docker Compose
+
+## Goal
+
+Build an internal assistant that can process PDF, CSV, and Excel files, call safe Python tools, generate reports, and support controlled human-in-the-loop workflows.
