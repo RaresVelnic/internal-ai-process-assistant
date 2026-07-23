@@ -1,10 +1,17 @@
+Metadata-Version: 2.4
+Name: internal-ai-process-assistant
+Version: 0.1.0
+Summary: Internal AI assistant for document and data processing workflows.
+Requires-Python: >=3.14
+Description-Content-Type: text/markdown
+
 # Internal AI Process Assistant
 
 A portfolio project for building a practical internal AI assistant for document and data processing workflows.
 
 ## Current phase
 
-Phase 0: Development environment setup and project foundation.
+Phase 0: Development environment setup.
 
 ## Environment
 
@@ -12,20 +19,9 @@ Phase 0: Development environment setup and project foundation.
 - VirtualBox
 - Ubuntu Server 26.04 LTS VM
 - VS Code Remote SSH
-- Git and GitHub
-- Python 3.14
-- Docker Engine and Docker Compose
-
-## Project foundation
-
-The project currently includes:
-
-- a `src/` Python package layout;
-- a local virtual environment workflow;
-- pytest for automated tests;
-- Ruff for linting;
-- Docker installed and verified in the VM;
-- GitHub repository synchronization.
+- Git
+- Python
+- Docker and Docker Compose
 
 ## Goal
 
