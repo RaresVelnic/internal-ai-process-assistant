@@ -1,9 +1,0 @@
-README.md
-pyproject.toml
-src/internal_ai_process_assistant/__init__.py
-src/internal_ai_process_assistant/app_info.py
-src/internal_ai_process_assistant.egg-info/PKG-INFO
-src/internal_ai_process_assistant.egg-info/SOURCES.txt
-src/internal_ai_process_assistant.egg-info/dependency_links.txt
-src/internal_ai_process_assistant.egg-info/top_level.txt
-tests/test_app_info.py
