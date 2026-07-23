@@ -17,6 +17,9 @@ dist/
 Thumbs.db
 
 # Project data
-input/
-workspace/
-output/
+input/*
+workspace/*
+output/*
+!input/.gitkeep
+!workspace/.gitkeep
+!output/.gitkeep
