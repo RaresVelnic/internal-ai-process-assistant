@@ -37,6 +37,20 @@ Current modules:
     src/internal_ai_process_assistant/tool_registry.py
     src/internal_ai_process_assistant/tools/file_listing.py
 
+## Architecture Diagram
+
+```mermaid
+flowchart LR
+    user["User request"] --> cli["CLI"]
+    cli --> agent["Minimal rule-based agent"]
+    agent --> executor["Controlled tool executor"]
+    executor --> registry["Tool registry"]
+    executor --> file_tool["list_available_files"]
+    executor --> csv_tool["inspect_csv"]
+    file_tool --> result["Structured result"]
+    csv_tool --> result
+```
+
 ## Controlled Runtime Directories
 
 The project uses three controlled runtime directories:
