@@ -56,7 +56,7 @@ def test_inspect_csv_rejects_directory_paths(tmp_path: Path) -> None:
 
 
 def test_inspect_csv_rejects_non_csv_files(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="must use the .csv extension"):
+    with pytest.raises(ValueError, match="Unsupported input file extension"):
         inspect_csv("sample.txt", tmp_path)
 
 
@@ -64,5 +64,14 @@ def test_inspect_csv_rejects_missing_files(tmp_path: Path) -> None:
     input_dir = tmp_path / "input"
     input_dir.mkdir()
 
-    with pytest.raises(FileNotFoundError, match="CSV file not found"):
+    with pytest.raises(FileNotFoundError, match="Input file not found"):
         inspect_csv("missing.csv", tmp_path)
+
+
+def test_inspect_csv_rejects_supported_non_csv_input_file(tmp_path: Path) -> None:
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+    (input_dir / "workbook.xlsx").write_bytes(b"fake-xlsx-for-validation-only")
+
+    with pytest.raises(ValueError, match="CSV inspection requires a .csv file"):
+        inspect_csv("workbook.xlsx", tmp_path)

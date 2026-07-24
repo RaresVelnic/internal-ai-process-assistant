@@ -4,6 +4,8 @@ import csv
 from dataclasses import dataclass
 from pathlib import Path
 
+from internal_ai_process_assistant.tools.input_file_validation import validate_input_file
+
 
 @dataclass(frozen=True)
 class CsvInspectionResult:
@@ -18,13 +20,13 @@ class CsvInspectionResult:
 
 def inspect_csv(filename: str, project_root: Path) -> CsvInspectionResult:
     """Inspect a CSV file from the controlled input directory."""
-    _validate_csv_filename(filename)
+    validation = validate_input_file(filename=filename, project_root=project_root)
 
-    csv_path = project_root / "input" / filename
+    if validation.extension != ".csv":
+        msg = "CSV inspection requires a .csv file"
+        raise ValueError(msg)
 
-    if not csv_path.exists():
-        msg = f"CSV file not found: {filename}"
-        raise FileNotFoundError(msg)
+    csv_path = project_root / validation.relative_path
 
     with csv_path.open(newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
@@ -46,18 +48,3 @@ def inspect_csv(filename: str, project_root: Path) -> CsvInspectionResult:
         columns=columns,
         missing_values_by_column=missing_values_by_column,
     )
-
-
-def _validate_csv_filename(filename: str) -> None:
-    """Validate that only a simple CSV filename is accepted."""
-    if filename != Path(filename).name:
-        msg = "CSV filename must not include directories"
-        raise ValueError(msg)
-
-    if ".." in filename:
-        msg = "CSV filename must not include parent directory references"
-        raise ValueError(msg)
-
-    if not filename.lower().endswith(".csv"):
-        msg = "CSV filename must use the .csv extension"
-        raise ValueError(msg)
