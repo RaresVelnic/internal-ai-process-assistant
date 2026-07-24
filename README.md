@@ -28,6 +28,7 @@ The project currently includes:
 - GitHub repository synchronization;
 - controlled runtime directories: `input/`, `workspace/`, and `output/`;
 - a safe file listing tool;
+- a safe CSV inspection tool;
 - a minimal tool registry;
 - a controlled tool executor;
 - a minimal rule-based agent;
@@ -59,7 +60,7 @@ Copy the public demo file into the local runtime input directory:
 
     cp examples/input/sample.csv input/sample.csv
 
-Run the minimal agent:
+Run the minimal agent to list available files:
 
     python -m internal_ai_process_assistant.cli "list files in input"
 
@@ -79,6 +80,33 @@ Expected result:
             "is_file": true
           }
         ]
+      }
+    }
+
+Inspect the demo CSV file:
+
+    python -m internal_ai_process_assistant.cli "inspect csv sample.csv"
+
+Expected result:
+
+    {
+      "status": "completed",
+      "message": "Inspected CSV file sample.csv.",
+      "tool_name": "inspect_csv",
+      "result": {
+        "filename": "sample.csv",
+        "row_count": 3,
+        "column_count": 3,
+        "columns": [
+          "name",
+          "department",
+          "amount"
+        ],
+        "missing_values_by_column": {
+          "name": 0,
+          "department": 0,
+          "amount": 0
+        }
       }
     }
 

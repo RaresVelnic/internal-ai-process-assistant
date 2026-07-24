@@ -15,6 +15,7 @@ Supported requests:
     list files in input
     list files in workspace
     list files in output
+    inspect csv <filename.csv>
 
 Unsupported requests are rejected with a structured response instead of being guessed or executed.
 
@@ -83,6 +84,35 @@ The result includes:
     size in bytes
     whether the entry is a file
 
+## Implemented Tool: inspect_csv
+
+The second safe tool is:
+
+    inspect_csv(filename, project_root)
+
+It inspects a CSV file located in the controlled `input/` directory.
+
+The tool accepts a simple filename, not an arbitrary path.
+
+It rejects:
+
+    directory paths
+    parent directory references
+    non-CSV files
+    missing files
+
+The tool returns structured data:
+
+    CsvInspectionResult
+
+The result includes:
+
+    filename
+    row count
+    column count
+    column names
+    missing values by column
+
 ## Tool Registry
 
 The tool registry exposes metadata about available tools.
@@ -91,9 +121,10 @@ Current registry function:
 
     list_tools()
 
-Current registered tool:
+Current registered tools:
 
     list_available_files
+    inspect_csv
 
 The registry returns structured metadata such as tool name, description, and allowed parameter values.
 
@@ -143,6 +174,14 @@ Expected behavior:
 
     The command returns JSON with status completed and lists sample.csv from the input directory.
 
+Inspect the demo CSV file:
+
+    python -m internal_ai_process_assistant.cli "inspect csv sample.csv"
+
+Expected behavior:
+
+    The command returns JSON with status completed and a structured CSV summary.
+
 ## Validation
 
 Run tests:
@@ -157,6 +196,7 @@ Current test coverage includes:
 
     app metadata
     safe file listing
+    safe CSV inspection
     tool registry
     controlled tool executor
     minimal rule-based agent
@@ -229,7 +269,6 @@ Phase 1 does not include:
     FastAPI
     web UI
     Dockerfile
-    CSV inspection
     PDF or Excel processing
     human-in-the-loop approval flows
 
