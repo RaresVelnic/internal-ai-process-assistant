@@ -29,6 +29,7 @@ The project currently includes:
 - controlled runtime directories: `input/`, `workspace/`, and `output/`;
 - a safe file listing tool;
 - a safe CSV inspection tool;
+- a basic CSV report generation tool;
 - a minimal tool registry;
 - a controlled tool executor;
 - a minimal rule-based agent;
@@ -110,9 +111,29 @@ Expected result:
       }
     }
 
+Generate a basic Markdown report from the demo CSV file:
+
+    python -m internal_ai_process_assistant.cli "generate report for sample.csv"
+
+Expected result:
+
+    {
+      "status": "completed",
+      "message": "Generated basic report for sample.csv.",
+      "tool_name": "generate_basic_report",
+      "result": {
+        "source_filename": "sample.csv",
+        "report_filename": "sample_report.md",
+        "report_relative_path": "output/sample_report.md"
+      }
+    }
+
+The generated report is written to `output/sample_report.md`. Runtime output files are ignored by Git.
+
 ## Documentation
 
 - [Phase 0 setup](docs/setup-phase-0.md)
+- [Phase 1 minimal agent](docs/phase-1-minimal-agent.md)
 
 ## Goal
 

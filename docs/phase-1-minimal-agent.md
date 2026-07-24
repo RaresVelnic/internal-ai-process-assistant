@@ -16,6 +16,7 @@ Supported requests:
     list files in workspace
     list files in output
     inspect csv <filename.csv>
+    generate report for <filename.csv>
 
 Unsupported requests are rejected with a structured response instead of being guessed or executed.
 
@@ -36,6 +37,8 @@ Current modules:
     src/internal_ai_process_assistant/tool_executor.py
     src/internal_ai_process_assistant/tool_registry.py
     src/internal_ai_process_assistant/tools/file_listing.py
+    src/internal_ai_process_assistant/tools/csv_inspection.py
+    src/internal_ai_process_assistant/tools/basic_report.py
 
 ## Architecture Diagram
 
@@ -47,8 +50,10 @@ flowchart LR
     executor --> registry["Tool registry"]
     executor --> file_tool["list_available_files"]
     executor --> csv_tool["inspect_csv"]
+    executor --> report_tool["generate_basic_report"]
     file_tool --> result["Structured result"]
     csv_tool --> result
+    report_tool --> result
 ```
 
 ## Controlled Runtime Directories
@@ -127,6 +132,28 @@ The result includes:
     column names
     missing values by column
 
+## Implemented Tool: generate_basic_report
+
+The third safe tool is:
+
+    generate_basic_report(filename, project_root)
+
+It generates a basic Markdown report for a CSV file located in the controlled `input/` directory.
+
+The tool uses `inspect_csv` internally and writes the generated report only to the controlled `output/` directory.
+
+The tool returns structured data:
+
+    BasicReportResult
+
+The result includes:
+
+    source filename
+    report filename
+    report relative path
+
+Generated reports are runtime output files and are ignored by Git.
+
 ## Tool Registry
 
 The tool registry exposes metadata about available tools.
@@ -139,6 +166,7 @@ Current registered tools:
 
     list_available_files
     inspect_csv
+    generate_basic_report
 
 The registry returns structured metadata such as tool name, description, and allowed parameter values.
 
@@ -196,6 +224,14 @@ Expected behavior:
 
     The command returns JSON with status completed and a structured CSV summary.
 
+Generate a basic Markdown report:
+
+    python -m internal_ai_process_assistant.cli "generate report for sample.csv"
+
+Expected behavior:
+
+    The command returns JSON with status completed and writes a report to output/sample_report.md.
+
 ## Validation
 
 Run tests:
@@ -211,6 +247,7 @@ Current test coverage includes:
     app metadata
     safe file listing
     safe CSV inspection
+    basic CSV report generation
     tool registry
     controlled tool executor
     minimal rule-based agent
@@ -225,7 +262,7 @@ The current implementation intentionally avoids:
     unrestricted filesystem access
     recursive filesystem traversal
     LLM-generated tool calls
-    automatic file modification
+    arbitrary file modification
     deletion or overwrite operations
 
 Tools must be explicit, registered, validated, and tested.
