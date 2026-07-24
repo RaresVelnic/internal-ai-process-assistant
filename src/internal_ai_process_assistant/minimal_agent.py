@@ -26,6 +26,7 @@ SUPPORTED_FILE_LISTING_REQUESTS = {
 }
 
 INSPECT_CSV_PREFIX = "inspect csv "
+GENERATE_REPORT_PREFIX = "generate report for "
 
 
 def run_minimal_agent(request: str, project_root: Path) -> AgentResponse:
@@ -39,6 +40,10 @@ def run_minimal_agent(request: str, project_root: Path) -> AgentResponse:
     csv_inspection_response = _try_handle_csv_inspection(normalized_request, project_root)
     if csv_inspection_response is not None:
         return csv_inspection_response
+
+    report_generation_response = _try_handle_report_generation(normalized_request, project_root)
+    if report_generation_response is not None:
+        return report_generation_response
 
     return AgentResponse(
         status="unsupported_request",
@@ -89,5 +94,31 @@ def _try_handle_csv_inspection(request: str, project_root: Path) -> AgentRespons
         status="completed",
         message=f"Inspected CSV file {filename}.",
         tool_name="inspect_csv",
+        result=result,
+    )
+
+
+def _try_handle_report_generation(request: str, project_root: Path) -> AgentResponse | None:
+    """Handle explicit report generation requests."""
+    if not request.startswith(GENERATE_REPORT_PREFIX):
+        return None
+
+    filename = request.removeprefix(GENERATE_REPORT_PREFIX).strip()
+    if not filename:
+        return AgentResponse(
+            status="unsupported_request",
+            message="Report generation requires a filename.",
+        )
+
+    result = execute_tool(
+        tool_name="generate_basic_report",
+        arguments={"filename": filename},
+        project_root=project_root,
+    )
+
+    return AgentResponse(
+        status="completed",
+        message=f"Generated basic report for {filename}.",
+        tool_name="generate_basic_report",
         result=result,
     )
