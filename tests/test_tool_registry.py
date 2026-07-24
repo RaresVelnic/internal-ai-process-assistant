@@ -6,7 +6,11 @@ def test_list_tools_returns_registered_tools() -> None:
 
     tool_names = {tool.name for tool in tools}
 
-    assert tool_names == {"list_available_files", "inspect_csv"}
+    assert tool_names == {
+        "list_available_files",
+        "inspect_csv",
+        "generate_basic_report",
+    }
 
 
 def test_list_tools_describes_file_listing_parameters() -> None:
@@ -23,3 +27,11 @@ def test_list_tools_describes_csv_inspection_parameters() -> None:
 
     assert csv_tool.parameters[0].name == "filename"
     assert csv_tool.parameters[0].allowed_values == ()
+
+
+def test_list_tools_describes_basic_report_parameters() -> None:
+    tools = list_tools()
+    report_tool = next(tool for tool in tools if tool.name == "generate_basic_report")
+
+    assert report_tool.parameters[0].name == "filename"
+    assert report_tool.parameters[0].allowed_values == ()

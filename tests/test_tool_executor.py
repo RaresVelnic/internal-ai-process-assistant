@@ -40,6 +40,26 @@ def test_execute_tool_runs_csv_inspection_tool(tmp_path: Path) -> None:
     assert result.missing_values_by_column == {"name": 0, "amount": 1}
 
 
+def test_execute_tool_runs_basic_report_tool(tmp_path: Path) -> None:
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+    (input_dir / "sample.csv").write_text(
+        "name,amount\nAlice,10\nBob,\n",
+        encoding="utf-8",
+    )
+
+    result = execute_tool(
+        tool_name="generate_basic_report",
+        arguments={"filename": "sample.csv"},
+        project_root=tmp_path,
+    )
+
+    assert result.source_filename == "sample.csv"
+    assert result.report_filename == "sample_report.md"
+    assert result.report_relative_path == "output/sample_report.md"
+    assert (tmp_path / "output" / "sample_report.md").exists()
+
+
 def test_execute_tool_rejects_unknown_tool(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="Unsupported tool"):
         execute_tool(
@@ -58,10 +78,19 @@ def test_execute_tool_requires_area_argument(tmp_path: Path) -> None:
         )
 
 
-def test_execute_tool_requires_filename_argument(tmp_path: Path) -> None:
+def test_execute_tool_requires_filename_argument_for_csv_inspection(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="Missing required argument: filename"):
         execute_tool(
             tool_name="inspect_csv",
+            arguments={},
+            project_root=tmp_path,
+        )
+
+
+def test_execute_tool_requires_filename_argument_for_basic_report(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="Missing required argument: filename"):
+        execute_tool(
+            tool_name="generate_basic_report",
             arguments={},
             project_root=tmp_path,
         )

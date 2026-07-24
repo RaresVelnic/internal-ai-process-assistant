@@ -45,4 +45,14 @@ def list_tools() -> list[ToolDefinition]:
                 ),
             ),
         ),
+        ToolDefinition(
+            name="generate_basic_report",
+            description="Generate a basic Markdown report for a CSV file.",
+            parameters=(
+                ToolParameter(
+                    name="filename",
+                    description="CSV filename located in the input directory.",
+                ),
+            ),
+        ),
     ]
