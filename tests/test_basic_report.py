@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from internal_ai_process_assistant.tools.basic_report import generate_basic_report
 
 
@@ -49,3 +51,25 @@ def test_generate_basic_report_overwrites_existing_generated_report(tmp_path: Pa
 
     assert "old report" not in report_content
     assert "# Basic CSV Report: sample.csv" in report_content
+
+
+def test_generate_basic_report_rejects_directory_paths(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="must not include directories"):
+        generate_basic_report("../sample.csv", tmp_path)
+
+
+def test_generate_basic_report_rejects_missing_files(tmp_path: Path) -> None:
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    with pytest.raises(FileNotFoundError, match="Input file not found"):
+        generate_basic_report("missing.csv", tmp_path)
+
+
+def test_generate_basic_report_rejects_supported_non_csv_input_file(tmp_path: Path) -> None:
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+    (input_dir / "workbook.xlsx").write_bytes(b"fake-xlsx-for-validation-only")
+
+    with pytest.raises(ValueError, match="CSV inspection requires a .csv file"):
+        generate_basic_report("workbook.xlsx", tmp_path)
