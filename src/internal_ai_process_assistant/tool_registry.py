@@ -9,7 +9,7 @@ class ToolParameter:
 
     name: str
     description: str
-    allowed_values: tuple[str, ...]
+    allowed_values: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -34,5 +34,15 @@ def list_tools() -> list[ToolDefinition]:
                     allowed_values=("input", "workspace", "output"),
                 ),
             ),
-        )
+        ),
+        ToolDefinition(
+            name="inspect_csv",
+            description="Inspect a CSV file from the controlled input directory.",
+            parameters=(
+                ToolParameter(
+                    name="filename",
+                    description="CSV filename located in the input directory.",
+                ),
+            ),
+        ),
     ]
