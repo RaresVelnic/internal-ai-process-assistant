@@ -309,6 +309,36 @@ Rejected alternative: committing files directly from input, workspace, or output
 
 Impact: demo data lives under examples, while runtime data remains local.
 
+## Phase 1 Completion Status
+
+Phase 1 is complete as a rule-based MVP.
+
+Completed capabilities:
+
+    list files in input
+    list files in workspace
+    list files in output
+    inspect csv <filename.csv>
+    generate report for <filename.csv>
+
+Final validation:
+
+    pytest: 34 passed
+    ruff: all checks passed
+
+End-to-end demo commands:
+
+    python -m internal_ai_process_assistant.cli "list files in input"
+    python -m internal_ai_process_assistant.cli "inspect csv sample.csv"
+    python -m internal_ai_process_assistant.cli "generate report for sample.csv"
+
+Generated runtime files:
+
+    input/sample.csv
+    output/sample_report.md
+
+These runtime files are intentionally ignored by Git.
+
 ## What Is Not Included Yet
 
 Phase 1 does not include:
