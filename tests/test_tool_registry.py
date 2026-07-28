@@ -11,6 +11,7 @@ def test_list_tools_returns_registered_tools() -> None:
         "validate_input_file",
         "inspect_csv",
         "inspect_excel",
+        "inspect_pdf",
         "generate_basic_report",
     }
 
@@ -53,3 +54,11 @@ def test_list_tools_describes_excel_inspection_parameters() -> None:
 
     assert excel_tool.parameters[0].name == "filename"
     assert excel_tool.parameters[0].allowed_values == ()
+
+
+def test_list_tools_describes_pdf_inspection_parameters() -> None:
+    tools = list_tools()
+    pdf_tool = next(tool for tool in tools if tool.name == "inspect_pdf")
+
+    assert pdf_tool.parameters[0].name == "filename"
+    assert pdf_tool.parameters[0].allowed_values == ()

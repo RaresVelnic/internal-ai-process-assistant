@@ -154,3 +154,30 @@ def test_execute_tool_runs_excel_inspection_tool(tmp_path: Path) -> None:
     assert result.sheets[0].name == "Expenses"
     assert result.sheets[0].row_count == 2
     assert result.sheets[0].column_count == 2
+
+
+def test_execute_tool_runs_pdf_inspection_tool(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Internal AI Process Assistant")
+    pdf.showPage()
+    pdf.save()
+
+    result = execute_tool(
+        tool_name="inspect_pdf",
+        arguments={"filename": "sample.pdf"},
+        project_root=tmp_path,
+    )
+
+    assert result.filename == "sample.pdf"
+    assert result.page_count == 1
+    assert result.is_encrypted is False
+    assert result.pages[0].page_number == 1
+    assert result.pages[0].text_length > 0

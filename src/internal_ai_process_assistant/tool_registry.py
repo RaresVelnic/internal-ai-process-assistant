@@ -66,6 +66,16 @@ def list_tools() -> list[ToolDefinition]:
             ),
         ),
         ToolDefinition(
+            name="inspect_pdf",
+            description="Inspect a PDF document from the controlled input directory.",
+            parameters=(
+                ToolParameter(
+                    name="filename",
+                    description="PDF filename located in the input directory.",
+                ),
+            ),
+        ),
+        ToolDefinition(
             name="generate_basic_report",
             description="Generate a basic Markdown report for a CSV file.",
             parameters=(
