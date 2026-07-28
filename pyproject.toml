@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Internal AI assistant for document and data processing workflows."
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "defusedxml>=0.7.1",
+    "openpyxl==3.1.5",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
