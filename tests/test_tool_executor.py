@@ -181,3 +181,30 @@ def test_execute_tool_runs_pdf_inspection_tool(tmp_path: Path) -> None:
     assert result.is_encrypted is False
     assert result.pages[0].page_number == 1
     assert result.pages[0].text_length > 0
+
+
+def test_execute_tool_runs_pdf_text_extraction_tool(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Internal AI Process Assistant")
+    pdf.showPage()
+    pdf.save()
+
+    result = execute_tool(
+        tool_name="extract_pdf_text",
+        arguments={"filename": "sample.pdf"},
+        project_root=tmp_path,
+    )
+
+    assert result.filename == "sample.pdf"
+    assert result.page_count == 1
+    assert result.extracted_page_count == 1
+    assert "Internal AI Process Assistant" in result.pages[0].text
+    assert result.pages[0].truncated is False

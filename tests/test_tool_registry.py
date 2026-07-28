@@ -12,6 +12,7 @@ def test_list_tools_returns_registered_tools() -> None:
         "inspect_csv",
         "inspect_excel",
         "inspect_pdf",
+        "extract_pdf_text",
         "generate_basic_report",
     }
 
@@ -62,3 +63,11 @@ def test_list_tools_describes_pdf_inspection_parameters() -> None:
 
     assert pdf_tool.parameters[0].name == "filename"
     assert pdf_tool.parameters[0].allowed_values == ()
+
+
+def test_list_tools_describes_pdf_text_extraction_parameters() -> None:
+    tools = list_tools()
+    pdf_text_tool = next(tool for tool in tools if tool.name == "extract_pdf_text")
+
+    assert pdf_text_tool.parameters[0].name == "filename"
+    assert pdf_text_tool.parameters[0].allowed_values == ()

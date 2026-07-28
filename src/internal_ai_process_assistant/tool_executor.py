@@ -11,13 +11,17 @@ from internal_ai_process_assistant.tools.csv_inspection import CsvInspectionResu
 from internal_ai_process_assistant.tools.excel_inspection import ExcelInspectionResult, inspect_excel
 from internal_ai_process_assistant.tools.file_listing import FileListResult, list_available_files
 from internal_ai_process_assistant.tools.pdf_inspection import PdfInspectionResult, inspect_pdf
+from internal_ai_process_assistant.tools.pdf_text_extraction import (
+    PdfTextExtractionResult,
+    extract_pdf_text,
+)
 from internal_ai_process_assistant.tools.input_file_validation import (
     InputFileValidationResult,
     validate_input_file,
 )
 
 ToolExecutionResult = (
-    FileListResult | InputFileValidationResult | CsvInspectionResult | ExcelInspectionResult | PdfInspectionResult | BasicReportResult
+    FileListResult | InputFileValidationResult | CsvInspectionResult | ExcelInspectionResult | PdfInspectionResult | PdfTextExtractionResult | BasicReportResult
 )
 
 
@@ -50,6 +54,10 @@ def execute_tool(
     if tool_name == "inspect_pdf":
         filename = _get_required_string_argument(arguments, "filename")
         return inspect_pdf(filename=filename, project_root=project_root)
+
+    if tool_name == "extract_pdf_text":
+        filename = _get_required_string_argument(arguments, "filename")
+        return extract_pdf_text(filename=filename, project_root=project_root)
 
     if tool_name == "generate_basic_report":
         filename = _get_required_string_argument(arguments, "filename")
