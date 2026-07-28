@@ -29,6 +29,7 @@ VALIDATE_FILE_PREFIX = "validate file "
 INSPECT_CSV_PREFIX = "inspect csv "
 INSPECT_EXCEL_PREFIX = "inspect excel "
 INSPECT_PDF_PREFIX = "inspect pdf "
+EXTRACT_PDF_TEXT_PREFIX = "extract pdf text "
 GENERATE_REPORT_PREFIX = "generate report for "
 
 
@@ -55,6 +56,13 @@ def run_minimal_agent(request: str, project_root: Path) -> AgentResponse:
     pdf_inspection_response = _try_handle_pdf_inspection(normalized_request, project_root)
     if pdf_inspection_response is not None:
         return pdf_inspection_response
+
+    pdf_text_extraction_response = _try_handle_pdf_text_extraction(
+        normalized_request,
+        project_root,
+    )
+    if pdf_text_extraction_response is not None:
+        return pdf_text_extraction_response
 
     report_generation_response = _try_handle_report_generation(normalized_request, project_root)
     if report_generation_response is not None:
@@ -187,6 +195,35 @@ def _try_handle_pdf_inspection(request: str, project_root: Path) -> AgentRespons
         status="completed",
         message=f"Inspected PDF file {filename}.",
         tool_name="inspect_pdf",
+        result=result,
+    )
+
+
+def _try_handle_pdf_text_extraction(
+    request: str,
+    project_root: Path,
+) -> AgentResponse | None:
+    """Handle explicit PDF text extraction requests."""
+    if not request.startswith(EXTRACT_PDF_TEXT_PREFIX):
+        return None
+
+    filename = request.removeprefix(EXTRACT_PDF_TEXT_PREFIX).strip()
+    if not filename:
+        return AgentResponse(
+            status="unsupported_request",
+            message="PDF text extraction requires a filename.",
+        )
+
+    result = execute_tool(
+        tool_name="extract_pdf_text",
+        arguments={"filename": filename},
+        project_root=project_root,
+    )
+
+    return AgentResponse(
+        status="completed",
+        message=f"Extracted text from PDF file {filename}.",
+        tool_name="extract_pdf_text",
         result=result,
     )
 
