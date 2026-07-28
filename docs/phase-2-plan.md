@@ -203,3 +203,79 @@ Security decisions:
 - the tool returns structured metadata instead of free-form text.
 
 This step prepares the project for safe document processing tools in Phase 2.
+
+## Completed Step: Excel Inspection Workflow
+
+The project now supports safe Excel workbook inspection through the minimal agent workflow.
+
+The Excel inspection flow is:
+
+```text
+User request
+-> CLI
+-> minimal rule-based agent
+-> controlled tool executor
+-> inspect_excel
+-> validate_input_file
+-> openpyxl read-only workbook inspection
+-> structured workbook metadata
+```
+
+Supported CLI example:
+
+```bash
+python -m internal_ai_process_assistant.cli "inspect excel sample.xlsx"
+```
+
+Expected structured result shape:
+
+```json
+{
+  "status": "completed",
+  "message": "Inspected Excel file sample.xlsx.",
+  "tool_name": "inspect_excel",
+  "result": {
+    "filename": "sample.xlsx",
+    "sheet_count": 2,
+    "sheets": [
+      {
+        "name": "Expenses",
+        "row_count": 4,
+        "column_count": 3
+      },
+      {
+        "name": "Summary",
+        "row_count": 3,
+        "column_count": 2
+      }
+    ]
+  }
+}
+```
+
+Implementation notes:
+
+- `openpyxl` is used for `.xlsx` workbook inspection;
+- `defusedxml` is installed as an XML parsing safety dependency;
+- workbook loading uses `read_only=True` and `data_only=True`;
+- the tool returns workbook metadata only;
+- it does not modify, clean, transform, or export Excel data yet.
+
+Security decisions:
+
+- Excel inspection is limited to files inside the controlled `input/` directory;
+- arbitrary filesystem paths are rejected by shared input validation;
+- nested paths are rejected;
+- only `.xlsx` files are accepted by the Excel inspection tool;
+- runtime Excel files in `input/` remain ignored by Git;
+- synthetic demo data is stored in `examples/input/sample.xlsx`.
+
+Current validation commands:
+
+```bash
+python -m internal_ai_process_assistant.cli "inspect excel sample.xlsx"
+pytest
+ruff check .
+```
+
+This step prepares the project for later Excel cleanup and reporting workflows.
