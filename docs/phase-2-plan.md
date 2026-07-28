@@ -279,3 +279,78 @@ ruff check .
 ```
 
 This step prepares the project for later Excel cleanup and reporting workflows.
+
+## Completed Step: PDF Inspection Workflow
+
+The project now supports safe PDF inspection through the minimal agent workflow.
+
+The PDF inspection flow is:
+
+```text
+User request
+-> CLI
+-> minimal rule-based agent
+-> controlled tool executor
+-> inspect_pdf
+-> validate_input_file
+-> pypdf page inspection
+-> structured PDF metadata
+```
+
+Supported CLI example:
+
+```bash
+python -m internal_ai_process_assistant.cli "inspect pdf sample.pdf"
+```
+
+Expected structured result shape:
+
+```json
+{
+  "status": "completed",
+  "message": "Inspected PDF file sample.pdf.",
+  "tool_name": "inspect_pdf",
+  "result": {
+    "filename": "sample.pdf",
+    "page_count": 2,
+    "is_encrypted": false,
+    "pages": [
+      {
+        "page_number": 1,
+        "text_length": 219
+      },
+      {
+        "page_number": 2,
+        "text_length": 198
+      }
+    ]
+  }
+}
+```
+
+Implementation notes:
+
+- `pypdf` is used for PDF reading and page inspection;
+- `reportlab` is used only to generate synthetic demo PDFs;
+- the tool returns page-level metadata only;
+- it does not return full extracted text yet;
+- encrypted PDFs are detected and reported without extracting page text.
+
+Security decisions:
+
+- PDF inspection is limited to files inside the controlled `input/` directory;
+- arbitrary filesystem paths are rejected by shared input validation;
+- nested paths are rejected;
+- only `.pdf` files are accepted by the PDF inspection tool;
+- runtime PDF files in `input/` remain ignored by Git;
+- synthetic demo data is stored in `examples/input/sample.pdf`.
+
+Current validation commands:
+
+```bash
+python -m internal_ai_process_assistant.cli "inspect pdf sample.pdf"
+pytest
+ruff check .
+```
+
+This step prepares the project for later controlled PDF text extraction and RAG source preparation.
