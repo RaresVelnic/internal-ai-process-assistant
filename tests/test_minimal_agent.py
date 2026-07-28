@@ -143,3 +143,37 @@ def test_run_minimal_agent_rejects_empty_excel_filename(tmp_path: Path) -> None:
     assert response.status == "unsupported_request"
     assert response.tool_name is None
     assert response.result is None
+
+
+def test_run_minimal_agent_inspects_pdf_file(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    from internal_ai_process_assistant.tools.pdf_inspection import PdfInspectionResult
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Internal AI Process Assistant")
+    pdf.showPage()
+    pdf.save()
+
+    response = run_minimal_agent("inspect pdf sample.pdf", tmp_path)
+
+    assert response.status == "completed"
+    assert response.tool_name == "inspect_pdf"
+    assert isinstance(response.result, PdfInspectionResult)
+    assert response.result.filename == "sample.pdf"
+    assert response.result.page_count == 1
+    assert response.result.pages[0].text_length > 0
+
+
+def test_run_minimal_agent_rejects_empty_pdf_filename(tmp_path: Path) -> None:
+    response = run_minimal_agent("inspect pdf   ", tmp_path)
+
+    assert response.status == "unsupported_request"
+    assert response.tool_name is None
+    assert response.result is None

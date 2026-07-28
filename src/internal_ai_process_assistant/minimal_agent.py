@@ -28,6 +28,7 @@ SUPPORTED_FILE_LISTING_REQUESTS = {
 VALIDATE_FILE_PREFIX = "validate file "
 INSPECT_CSV_PREFIX = "inspect csv "
 INSPECT_EXCEL_PREFIX = "inspect excel "
+INSPECT_PDF_PREFIX = "inspect pdf "
 GENERATE_REPORT_PREFIX = "generate report for "
 
 
@@ -50,6 +51,10 @@ def run_minimal_agent(request: str, project_root: Path) -> AgentResponse:
     excel_inspection_response = _try_handle_excel_inspection(normalized_request, project_root)
     if excel_inspection_response is not None:
         return excel_inspection_response
+
+    pdf_inspection_response = _try_handle_pdf_inspection(normalized_request, project_root)
+    if pdf_inspection_response is not None:
+        return pdf_inspection_response
 
     report_generation_response = _try_handle_report_generation(normalized_request, project_root)
     if report_generation_response is not None:
@@ -156,6 +161,32 @@ def _try_handle_excel_inspection(request: str, project_root: Path) -> AgentRespo
         status="completed",
         message=f"Inspected Excel file {filename}.",
         tool_name="inspect_excel",
+        result=result,
+    )
+
+
+def _try_handle_pdf_inspection(request: str, project_root: Path) -> AgentResponse | None:
+    """Handle explicit PDF inspection requests."""
+    if not request.startswith(INSPECT_PDF_PREFIX):
+        return None
+
+    filename = request.removeprefix(INSPECT_PDF_PREFIX).strip()
+    if not filename:
+        return AgentResponse(
+            status="unsupported_request",
+            message="PDF inspection requires a filename.",
+        )
+
+    result = execute_tool(
+        tool_name="inspect_pdf",
+        arguments={"filename": filename},
+        project_root=project_root,
+    )
+
+    return AgentResponse(
+        status="completed",
+        message=f"Inspected PDF file {filename}.",
+        tool_name="inspect_pdf",
         result=result,
     )
 
