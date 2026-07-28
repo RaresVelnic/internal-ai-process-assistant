@@ -354,3 +354,142 @@ ruff check .
 ```
 
 This step prepares the project for later controlled PDF text extraction and RAG source preparation.
+
+## Completed Step: Bounded PDF Text Extraction Workflow
+
+The project now supports controlled PDF text extraction through the minimal agent workflow.
+
+The PDF text extraction flow is:
+
+```text
+User request
+-> CLI
+-> minimal rule-based agent
+-> controlled tool executor
+-> extract_pdf_text
+-> validate_input_file
+-> pypdf bounded text extraction
+-> structured page text result
+```
+
+Supported CLI example:
+
+```bash
+python -m internal_ai_process_assistant.cli "extract pdf text sample.pdf"
+```
+
+Expected structured result shape:
+
+```json
+{
+  "status": "completed",
+  "message": "Extracted text from PDF file sample.pdf.",
+  "tool_name": "extract_pdf_text",
+  "result": {
+    "filename": "sample.pdf",
+    "page_count": 2,
+    "extracted_page_count": 2,
+    "pages": [
+      {
+        "page_number": 1,
+        "text": "Internal AI Process Assistant...",
+        "truncated": false
+      },
+      {
+        "page_number": 2,
+        "text": "Processing Notes...",
+        "truncated": false
+      }
+    ]
+  }
+}
+```
+
+Implementation notes:
+
+- `pypdf` is used for text extraction;
+- extraction is bounded by page count;
+- extraction is bounded by characters per page;
+- encrypted PDFs are rejected with a clear error;
+- the result is structured per page;
+- no semantic search, chunking, embeddings, or RAG is performed in Phase 2.
+
+Security decisions:
+
+- PDF text extraction is limited to files inside the controlled `input/` directory;
+- arbitrary filesystem paths are rejected by shared input validation;
+- nested paths are rejected;
+- only `.pdf` files are accepted;
+- runtime PDFs in `input/` remain ignored by Git;
+- extracted text is returned in memory only and is not written to uncontrolled locations.
+
+Current validation commands:
+
+```bash
+python -m internal_ai_process_assistant.cli "extract pdf text sample.pdf"
+pytest
+ruff check .
+```
+
+This step prepares the project for Phase 3, where extracted text can be chunked, indexed, and searched with source references.
+
+## Phase 2 MVP Complete
+
+Phase 2 is now complete at MVP level.
+
+Implemented capabilities:
+
+- controlled input file validation;
+- CSV inspection;
+- basic CSV report generation;
+- Excel workbook inspection;
+- PDF metadata inspection;
+- bounded PDF text extraction;
+- synthetic demo files for CSV, Excel, and PDF;
+- controlled runtime directories: `input/`, `workspace/`, and `output/`;
+- ignored runtime files and generated outputs;
+- automated tests for all implemented tools;
+- CLI access through the minimal rule-based agent.
+
+Supported CLI commands at the end of Phase 2:
+
+```bash
+python -m internal_ai_process_assistant.cli "list files in input"
+python -m internal_ai_process_assistant.cli "validate file sample.csv"
+python -m internal_ai_process_assistant.cli "inspect csv sample.csv"
+python -m internal_ai_process_assistant.cli "generate report for sample.csv"
+python -m internal_ai_process_assistant.cli "inspect excel sample.xlsx"
+python -m internal_ai_process_assistant.cli "inspect pdf sample.pdf"
+python -m internal_ai_process_assistant.cli "extract pdf text sample.pdf"
+```
+
+Architecture decisions:
+
+- tools remain explicit, limited, and validated;
+- no arbitrary shell execution is exposed;
+- no unrestricted filesystem access is allowed;
+- document processing happens only through controlled tools;
+- runtime data remains outside Git;
+- demo data is synthetic and safe for a public repository.
+
+Rejected for Phase 2:
+
+- OCR;
+- RAG;
+- embeddings;
+- vector databases;
+- FastAPI;
+- LangChain;
+- LangGraph;
+- background jobs;
+- multi-agent workflows;
+- unrestricted document transformation.
+
+These features are intentionally deferred to later phases.
+
+Phase 2 completion criteria:
+
+- `pytest` passes;
+- `ruff check .` passes;
+- Git working tree is clean;
+- all Phase 2 code and documentation are committed and pushed to GitHub.
