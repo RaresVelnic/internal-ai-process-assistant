@@ -110,3 +110,36 @@ def test_run_minimal_agent_rejects_unsupported_request(tmp_path: Path) -> None:
     assert response.status == "unsupported_request"
     assert response.tool_name is None
     assert response.result is None
+
+
+def test_run_minimal_agent_inspects_excel_file(tmp_path: Path) -> None:
+    from openpyxl import Workbook
+
+    from internal_ai_process_assistant.tools.excel_inspection import ExcelInspectionResult
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Expenses"
+    sheet.append(["name", "amount"])
+    sheet.append(["Alice Example", 100])
+    workbook.save(input_dir / "sample.xlsx")
+
+    response = run_minimal_agent("inspect excel sample.xlsx", tmp_path)
+
+    assert response.status == "completed"
+    assert response.tool_name == "inspect_excel"
+    assert isinstance(response.result, ExcelInspectionResult)
+    assert response.result.filename == "sample.xlsx"
+    assert response.result.sheet_count == 1
+    assert response.result.sheets[0].name == "Expenses"
+
+
+def test_run_minimal_agent_rejects_empty_excel_filename(tmp_path: Path) -> None:
+    response = run_minimal_agent("inspect excel   ", tmp_path)
+
+    assert response.status == "unsupported_request"
+    assert response.tool_name is None
+    assert response.result is None

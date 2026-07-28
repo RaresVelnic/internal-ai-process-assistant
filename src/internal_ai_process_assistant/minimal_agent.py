@@ -27,6 +27,7 @@ SUPPORTED_FILE_LISTING_REQUESTS = {
 
 VALIDATE_FILE_PREFIX = "validate file "
 INSPECT_CSV_PREFIX = "inspect csv "
+INSPECT_EXCEL_PREFIX = "inspect excel "
 GENERATE_REPORT_PREFIX = "generate report for "
 
 
@@ -45,6 +46,10 @@ def run_minimal_agent(request: str, project_root: Path) -> AgentResponse:
     csv_inspection_response = _try_handle_csv_inspection(normalized_request, project_root)
     if csv_inspection_response is not None:
         return csv_inspection_response
+
+    excel_inspection_response = _try_handle_excel_inspection(normalized_request, project_root)
+    if excel_inspection_response is not None:
+        return excel_inspection_response
 
     report_generation_response = _try_handle_report_generation(normalized_request, project_root)
     if report_generation_response is not None:
@@ -125,6 +130,32 @@ def _try_handle_csv_inspection(request: str, project_root: Path) -> AgentRespons
         status="completed",
         message=f"Inspected CSV file {filename}.",
         tool_name="inspect_csv",
+        result=result,
+    )
+
+
+def _try_handle_excel_inspection(request: str, project_root: Path) -> AgentResponse | None:
+    """Handle explicit Excel inspection requests."""
+    if not request.startswith(INSPECT_EXCEL_PREFIX):
+        return None
+
+    filename = request.removeprefix(INSPECT_EXCEL_PREFIX).strip()
+    if not filename:
+        return AgentResponse(
+            status="unsupported_request",
+            message="Excel inspection requires a filename.",
+        )
+
+    result = execute_tool(
+        tool_name="inspect_excel",
+        arguments={"filename": filename},
+        project_root=project_root,
+    )
+
+    return AgentResponse(
+        status="completed",
+        message=f"Inspected Excel file {filename}.",
+        tool_name="inspect_excel",
         result=result,
     )
 
