@@ -155,3 +155,51 @@ Phase 2 is complete when:
     Ruff passes
     documentation is updated
     all changes are committed and pushed to GitHub
+
+## Completed Step: Input File Validation Through Agent
+
+The project now exposes input file validation end-to-end through the minimal agent workflow.
+
+The validation flow is:
+
+```text
+User request
+-> CLI
+-> minimal rule-based agent
+-> controlled tool executor
+-> validate_input_file
+-> structured validation result
+```
+
+Supported CLI example:
+
+```bash
+python -m internal_ai_process_assistant.cli "validate file sample.csv"
+```
+
+Expected structured result:
+
+```json
+{
+  "status": "completed",
+  "message": "Validated input file sample.csv.",
+  "tool_name": "validate_input_file",
+  "result": {
+    "filename": "sample.csv",
+    "extension": ".csv",
+    "size_bytes": 74,
+    "relative_path": "input/sample.csv"
+  }
+}
+```
+
+Security decisions:
+
+- validation is limited to files inside the controlled `input/` directory;
+- arbitrary filesystem paths are rejected;
+- nested paths are rejected;
+- unsupported extensions are rejected;
+- allowed extensions are currently `.csv`, `.xlsx`, and `.pdf`;
+- the tool returns structured metadata instead of free-form text.
+
+This step prepares the project for safe document processing tools in Phase 2.
