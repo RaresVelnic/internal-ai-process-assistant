@@ -8,6 +8,7 @@ def test_list_tools_returns_registered_tools() -> None:
 
     assert tool_names == {
         "list_available_files",
+        "validate_input_file",
         "inspect_csv",
         "generate_basic_report",
     }
@@ -35,3 +36,11 @@ def test_list_tools_describes_basic_report_parameters() -> None:
 
     assert report_tool.parameters[0].name == "filename"
     assert report_tool.parameters[0].allowed_values == ()
+
+
+def test_list_tools_describes_input_file_validation_parameters() -> None:
+    tools = list_tools()
+    validation_tool = next(tool for tool in tools if tool.name == "validate_input_file")
+
+    assert validation_tool.parameters[0].name == "filename"
+    assert validation_tool.parameters[0].allowed_values == ()

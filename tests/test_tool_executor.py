@@ -21,6 +21,22 @@ def test_execute_tool_runs_file_listing_tool(tmp_path: Path) -> None:
     assert result.files[0].name == "sample.txt"
 
 
+def test_execute_tool_runs_input_file_validation_tool(tmp_path: Path) -> None:
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+    (input_dir / "sample.csv").write_text("name,amount\nAlice,10\n", encoding="utf-8")
+
+    result = execute_tool(
+        tool_name="validate_input_file",
+        arguments={"filename": "sample.csv"},
+        project_root=tmp_path,
+    )
+
+    assert result.filename == "sample.csv"
+    assert result.extension == ".csv"
+    assert result.relative_path == "input/sample.csv"
+
+
 def test_execute_tool_runs_csv_inspection_tool(tmp_path: Path) -> None:
     input_dir = tmp_path / "input"
     input_dir.mkdir()

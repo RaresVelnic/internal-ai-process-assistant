@@ -9,8 +9,14 @@ from internal_ai_process_assistant.tools.basic_report import (
 )
 from internal_ai_process_assistant.tools.csv_inspection import CsvInspectionResult, inspect_csv
 from internal_ai_process_assistant.tools.file_listing import FileListResult, list_available_files
+from internal_ai_process_assistant.tools.input_file_validation import (
+    InputFileValidationResult,
+    validate_input_file,
+)
 
-ToolExecutionResult = FileListResult | CsvInspectionResult | BasicReportResult
+ToolExecutionResult = (
+    FileListResult | InputFileValidationResult | CsvInspectionResult | BasicReportResult
+)
 
 
 def execute_tool(
@@ -26,6 +32,10 @@ def execute_tool(
             raise ValueError(msg)
 
         return list_available_files(area=area, project_root=project_root)  # type: ignore[arg-type]
+
+    if tool_name == "validate_input_file":
+        filename = _get_required_string_argument(arguments, "filename")
+        return validate_input_file(filename=filename, project_root=project_root)
 
     if tool_name == "inspect_csv":
         filename = _get_required_string_argument(arguments, "filename")

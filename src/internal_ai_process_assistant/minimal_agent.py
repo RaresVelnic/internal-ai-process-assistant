@@ -25,6 +25,7 @@ SUPPORTED_FILE_LISTING_REQUESTS = {
     "list files in output": "output",
 }
 
+VALIDATE_FILE_PREFIX = "validate file "
 INSPECT_CSV_PREFIX = "inspect csv "
 GENERATE_REPORT_PREFIX = "generate report for "
 
@@ -36,6 +37,10 @@ def run_minimal_agent(request: str, project_root: Path) -> AgentResponse:
     file_listing_response = _try_handle_file_listing(normalized_request, project_root)
     if file_listing_response is not None:
         return file_listing_response
+
+    file_validation_response = _try_handle_file_validation(normalized_request, project_root)
+    if file_validation_response is not None:
+        return file_validation_response
 
     csv_inspection_response = _try_handle_csv_inspection(normalized_request, project_root)
     if csv_inspection_response is not None:
@@ -68,6 +73,32 @@ def _try_handle_file_listing(request: str, project_root: Path) -> AgentResponse 
         status="completed",
         message=f"Listed files in {area}.",
         tool_name="list_available_files",
+        result=result,
+    )
+
+
+def _try_handle_file_validation(request: str, project_root: Path) -> AgentResponse | None:
+    """Handle explicit input file validation requests."""
+    if not request.startswith(VALIDATE_FILE_PREFIX):
+        return None
+
+    filename = request.removeprefix(VALIDATE_FILE_PREFIX).strip()
+    if not filename:
+        return AgentResponse(
+            status="unsupported_request",
+            message="File validation requires a filename.",
+        )
+
+    result = execute_tool(
+        tool_name="validate_input_file",
+        arguments={"filename": filename},
+        project_root=project_root,
+    )
+
+    return AgentResponse(
+        status="completed",
+        message=f"Validated input file {filename}.",
+        tool_name="validate_input_file",
         result=result,
     )
 

@@ -36,6 +36,16 @@ def list_tools() -> list[ToolDefinition]:
             ),
         ),
         ToolDefinition(
+            name="validate_input_file",
+            description="Validate a file from the controlled input directory.",
+            parameters=(
+                ToolParameter(
+                    name="filename",
+                    description="Filename located in the input directory.",
+                ),
+            ),
+        ),
+        ToolDefinition(
             name="inspect_csv",
             description="Inspect a CSV file from the controlled input directory.",
             parameters=(
