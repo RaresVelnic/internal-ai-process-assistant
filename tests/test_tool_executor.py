@@ -128,3 +128,29 @@ def test_execute_tool_rejects_invalid_area(tmp_path: Path) -> None:
             arguments={"area": "../outside"},
             project_root=tmp_path,
         )
+
+
+def test_execute_tool_runs_excel_inspection_tool(tmp_path: Path) -> None:
+    from openpyxl import Workbook
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Expenses"
+    sheet.append(["name", "amount"])
+    sheet.append(["Alice Example", 100])
+    workbook.save(input_dir / "sample.xlsx")
+
+    result = execute_tool(
+        tool_name="inspect_excel",
+        arguments={"filename": "sample.xlsx"},
+        project_root=tmp_path,
+    )
+
+    assert result.filename == "sample.xlsx"
+    assert result.sheet_count == 1
+    assert result.sheets[0].name == "Expenses"
+    assert result.sheets[0].row_count == 2
+    assert result.sheets[0].column_count == 2
