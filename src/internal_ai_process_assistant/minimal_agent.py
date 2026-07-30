@@ -30,6 +30,7 @@ INSPECT_CSV_PREFIX = "inspect csv "
 INSPECT_EXCEL_PREFIX = "inspect excel "
 INSPECT_PDF_PREFIX = "inspect pdf "
 EXTRACT_PDF_TEXT_PREFIX = "extract pdf text "
+SEARCH_PDF_PREFIX = "search pdf "
 GENERATE_REPORT_PREFIX = "generate report for "
 
 
@@ -63,6 +64,10 @@ def run_minimal_agent(request: str, project_root: Path) -> AgentResponse:
     )
     if pdf_text_extraction_response is not None:
         return pdf_text_extraction_response
+
+    pdf_search_response = _try_handle_pdf_search(normalized_request, project_root)
+    if pdf_search_response is not None:
+        return pdf_search_response
 
     report_generation_response = _try_handle_report_generation(normalized_request, project_root)
     if report_generation_response is not None:
@@ -224,6 +229,42 @@ def _try_handle_pdf_text_extraction(
         status="completed",
         message=f"Extracted text from PDF file {filename}.",
         tool_name="extract_pdf_text",
+        result=result,
+    )
+
+
+def _try_handle_pdf_search(request: str, project_root: Path) -> AgentResponse | None:
+    """Handle explicit local PDF keyword search requests."""
+    if not request.startswith(SEARCH_PDF_PREFIX):
+        return None
+
+    search_expression = request.removeprefix(SEARCH_PDF_PREFIX).strip()
+    if " for " not in search_expression:
+        return AgentResponse(
+            status="unsupported_request",
+            message='PDF search requires the format "search pdf <filename> for <query>".',
+        )
+
+    filename, query = search_expression.split(" for ", maxsplit=1)
+    filename = filename.strip()
+    query = query.strip()
+
+    if not filename or not query:
+        return AgentResponse(
+            status="unsupported_request",
+            message='PDF search requires the format "search pdf <filename> for <query>".',
+        )
+
+    result = execute_tool(
+        tool_name="search_pdf_text",
+        arguments={"filename": filename, "query": query},
+        project_root=project_root,
+    )
+
+    return AgentResponse(
+        status="completed",
+        message=f'Searched PDF file {filename} for "{query}".',
+        tool_name="search_pdf_text",
         result=result,
     )
 

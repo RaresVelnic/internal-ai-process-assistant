@@ -211,3 +211,46 @@ def test_run_minimal_agent_rejects_empty_pdf_text_filename(tmp_path: Path) -> No
     assert response.status == "unsupported_request"
     assert response.tool_name is None
     assert response.result is None
+
+
+def test_run_minimal_agent_searches_pdf_text(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    from internal_ai_process_assistant.rag.pdf_retrieval import PdfRetrievalResult
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Privacy policy document")
+    pdf.showPage()
+    pdf.save()
+
+    response = run_minimal_agent("search pdf sample.pdf for privacy", tmp_path)
+
+    assert response.status == "completed"
+    assert response.tool_name == "search_pdf_text"
+    assert isinstance(response.result, PdfRetrievalResult)
+    assert response.result.filename == "sample.pdf"
+    assert response.result.query == "privacy"
+    assert response.result.match_count == 1
+    assert "Privacy policy" in response.result.matches[0].chunk.text
+
+
+def test_run_minimal_agent_rejects_pdf_search_without_query(tmp_path: Path) -> None:
+    response = run_minimal_agent("search pdf sample.pdf", tmp_path)
+
+    assert response.status == "unsupported_request"
+    assert response.tool_name is None
+    assert response.result is None
+
+
+def test_run_minimal_agent_rejects_pdf_search_with_empty_query(tmp_path: Path) -> None:
+    response = run_minimal_agent("search pdf sample.pdf for   ", tmp_path)
+
+    assert response.status == "unsupported_request"
+    assert response.tool_name is None
+    assert response.result is None
