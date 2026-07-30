@@ -6,9 +6,9 @@ The project demonstrates a secure, incremental backend-oriented approach to file
 
 ## Current phase
 
-Phase 2 MVP complete: controlled document processing foundation.
+Phase 3 in progress: local retrieval foundation.
 
-The project does not use an LLM yet. The current agent is intentionally rule-based so that the tool layer, validation model, runtime directories, tests, and documentation are stable before adding RAG or external AI APIs.
+The project does not use an LLM yet. The current agent is intentionally rule-based so that the tool layer, validation model, runtime directories, retrieval pipeline, tests, and documentation are stable before adding embeddings, vector search, or external AI APIs.
 
 ## Implemented capabilities
 
@@ -28,6 +28,10 @@ The project currently includes:
 - Excel workbook inspection;
 - PDF metadata inspection;
 - bounded PDF text extraction;
+- source-aware text chunking;
+- PDF text chunking;
+- local keyword search over chunks;
+- local PDF retrieval with citations;
 - a minimal tool registry;
 - a controlled tool executor;
 - a minimal rule-based agent;
@@ -62,6 +66,12 @@ src/internal_ai_process_assistant/
     input_file_validation.py
     pdf_inspection.py
     pdf_text_extraction.py
+  rag/
+    citations.py
+    keyword_search.py
+    pdf_chunking.py
+    pdf_retrieval.py
+    text_chunking.py
 
 tests/
 docs/
@@ -159,6 +169,12 @@ Extract bounded text from the demo PDF document:
 python -m internal_ai_process_assistant.cli "extract pdf text sample.pdf"
 ```
 
+Search the demo PDF with local keyword retrieval:
+
+```bash
+python -m internal_ai_process_assistant.cli "search pdf sample.pdf for assistant"
+```
+
 Generated reports are written to `output/`. Runtime output files are ignored by Git.
 
 ## Safety model
@@ -183,7 +199,7 @@ This safety layer is deliberately implemented before introducing LLM-driven tool
 The following features are intentionally deferred to later phases:
 
 - LLM integration;
-- RAG;
+- semantic RAG with embeddings;
 - embeddings;
 - vector database;
 - LangChain;
@@ -200,19 +216,21 @@ The following features are intentionally deferred to later phases:
 - [Phase 0 setup](docs/setup-phase-0.md)
 - [Phase 1 minimal agent](docs/phase-1-minimal-agent.md)
 - [Phase 2 processing plan](docs/phase-2-plan.md)
+- [Phase 3 RAG foundation](docs/phase-3-rag-foundation.md)
 
-## Next phase
+## Next technical direction
 
-Phase 3 will introduce the RAG foundation.
+The project now has a local retrieval foundation.
 
-The next planned technical step is document text preparation:
+The next planned technical step is semantic retrieval preparation:
 
-- take extracted document text;
-- split it into controlled chunks;
-- attach source metadata;
-- prepare the structure needed for embeddings and semantic search.
+- choose an embeddings approach;
+- generate embeddings for controlled chunks;
+- store vectors in a simple local vector store;
+- compare keyword retrieval with semantic retrieval;
+- keep source citations attached to retrieved chunks.
 
-No vector database or LLM is required for the first Phase 3 step.
+No LLM-generated answers are required before semantic retrieval is working.
 
 ## Goal
 
