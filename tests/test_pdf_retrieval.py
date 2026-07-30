@@ -44,6 +44,7 @@ def test_search_pdf_text_returns_source_aware_matches(tmp_path: Path) -> None:
     assert result.matches[0].chunk.source_type == "pdf"
     assert result.matches[0].chunk.page_number == 2
     assert "Privacy policy" in result.matches[0].chunk.text
+    assert result.citations == ["sample.pdf, page 2, chunk 1"]
 
 
 def test_search_pdf_text_returns_empty_matches_for_blank_query(tmp_path: Path) -> None:
@@ -57,6 +58,7 @@ def test_search_pdf_text_returns_empty_matches_for_blank_query(tmp_path: Path) -
     assert result.query == "   "
     assert result.match_count == 0
     assert result.matches == []
+    assert result.citations == []
 
 
 def test_search_pdf_text_returns_empty_matches_when_query_not_found(tmp_path: Path) -> None:
@@ -74,6 +76,7 @@ def test_search_pdf_text_returns_empty_matches_when_query_not_found(tmp_path: Pa
     assert result.query == "invoice"
     assert result.match_count == 0
     assert result.matches == []
+    assert result.citations == []
 
 
 def test_search_pdf_text_uses_chunk_limits(tmp_path: Path) -> None:

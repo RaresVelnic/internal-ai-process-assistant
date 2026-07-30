@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from internal_ai_process_assistant.rag.citations import format_search_result_citations
 from internal_ai_process_assistant.rag.keyword_search import ChunkSearchResult, search_chunks_by_keyword
 from internal_ai_process_assistant.rag.pdf_chunking import chunk_pdf_text
 
@@ -15,6 +16,7 @@ class PdfRetrievalResult:
     query: str
     match_count: int
     matches: list[ChunkSearchResult]
+    citations: list[str]
 
 
 def search_pdf_text(
@@ -33,6 +35,7 @@ def search_pdf_text(
             query=query,
             match_count=0,
             matches=[],
+            citations=[],
         )
 
     chunks = chunk_pdf_text(
@@ -42,10 +45,12 @@ def search_pdf_text(
         chunk_overlap=chunk_overlap,
     )
     matches = search_chunks_by_keyword(chunks=chunks, query=normalized_query)
+    citations = format_search_result_citations(matches)
 
     return PdfRetrievalResult(
         filename=filename,
         query=normalized_query,
         match_count=len(matches),
         matches=matches,
+        citations=citations,
     )

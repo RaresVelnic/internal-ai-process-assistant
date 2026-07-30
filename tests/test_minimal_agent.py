@@ -238,6 +238,7 @@ def test_run_minimal_agent_searches_pdf_text(tmp_path: Path) -> None:
     assert response.result.query == "privacy"
     assert response.result.match_count == 1
     assert "Privacy policy" in response.result.matches[0].chunk.text
+    assert response.result.citations == ["sample.pdf, page 1, chunk 0"]
 
 
 def test_run_minimal_agent_rejects_pdf_search_without_query(tmp_path: Path) -> None:
