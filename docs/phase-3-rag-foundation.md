@@ -252,3 +252,74 @@ python -m internal_ai_process_assistant.cli "search pdf sample.pdf for assistant
 pytest
 ruff check .
 ```
+
+## Completed Step: Retrieval Citation Formatting
+
+The project now includes citation formatting for retrieval results.
+
+Citation formatting converts technical chunk metadata into human-readable source references.
+
+Example citation:
+
+```text
+sample.pdf, page 1, chunk 0
+```
+
+The citation flow is:
+
+```text
+DocumentChunk
+-> format_chunk_citation
+-> human-readable citation
+```
+
+For retrieval results:
+
+```text
+ChunkSearchResult[]
+-> format_search_result_citations
+-> citation list
+```
+
+Implementation notes:
+
+- citations include the source filename;
+- citations include the page number when available;
+- citations include the chunk index;
+- citations do not require filesystem access;
+- citations do not require external API calls;
+- citations are deterministic and testable.
+
+The local PDF retrieval workflow now returns both technical matches and formatted citations.
+
+Updated structured result shape:
+
+```json
+{
+  "filename": "sample.pdf",
+  "query": "assistant",
+  "match_count": 1,
+  "matches": [
+    {
+      "chunk": {
+        "text": "Internal AI Process Assistant...",
+        "chunk_index": 0,
+        "source_filename": "sample.pdf",
+        "source_type": "pdf",
+        "page_number": 1
+      },
+      "match_count": 2
+    }
+  ],
+  "citations": [
+    "sample.pdf, page 1, chunk 0"
+  ]
+}
+```
+
+Why this matters:
+
+- humans can see where a result came from;
+- a future UI can display compact source references;
+- a future LLM can use citations when generating answers;
+- retrieval stays explainable before semantic search is introduced.
