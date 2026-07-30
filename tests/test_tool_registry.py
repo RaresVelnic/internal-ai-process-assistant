@@ -13,6 +13,7 @@ def test_list_tools_returns_registered_tools() -> None:
         "inspect_excel",
         "inspect_pdf",
         "extract_pdf_text",
+        "search_pdf_text",
         "generate_basic_report",
     }
 
@@ -71,3 +72,12 @@ def test_list_tools_describes_pdf_text_extraction_parameters() -> None:
 
     assert pdf_text_tool.parameters[0].name == "filename"
     assert pdf_text_tool.parameters[0].allowed_values == ()
+
+
+def test_list_tools_describes_pdf_keyword_search_parameters() -> None:
+    tools = list_tools()
+    pdf_search_tool = next(tool for tool in tools if tool.name == "search_pdf_text")
+
+    assert [parameter.name for parameter in pdf_search_tool.parameters] == ["filename", "query"]
+    assert pdf_search_tool.parameters[0].allowed_values == ()
+    assert pdf_search_tool.parameters[1].allowed_values == ()

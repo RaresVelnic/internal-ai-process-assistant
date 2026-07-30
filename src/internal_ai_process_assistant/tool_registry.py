@@ -86,6 +86,20 @@ def list_tools() -> list[ToolDefinition]:
             ),
         ),
         ToolDefinition(
+            name="search_pdf_text",
+            description="Search a PDF document with local keyword retrieval.",
+            parameters=(
+                ToolParameter(
+                    name="filename",
+                    description="PDF filename located in the input directory.",
+                ),
+                ToolParameter(
+                    name="query",
+                    description="Keyword query to search for in the PDF text.",
+                ),
+            ),
+        ),
+        ToolDefinition(
             name="generate_basic_report",
             description="Generate a basic Markdown report for a CSV file.",
             parameters=(

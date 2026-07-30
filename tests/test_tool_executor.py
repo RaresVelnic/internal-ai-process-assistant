@@ -208,3 +208,38 @@ def test_execute_tool_runs_pdf_text_extraction_tool(tmp_path: Path) -> None:
     assert result.extracted_page_count == 1
     assert "Internal AI Process Assistant" in result.pages[0].text
     assert result.pages[0].truncated is False
+
+
+def test_execute_tool_runs_pdf_keyword_search_tool(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Privacy policy document")
+    pdf.showPage()
+    pdf.save()
+
+    result = execute_tool(
+        tool_name="search_pdf_text",
+        arguments={"filename": "sample.pdf", "query": "privacy"},
+        project_root=tmp_path,
+    )
+
+    assert result.filename == "sample.pdf"
+    assert result.query == "privacy"
+    assert result.match_count == 1
+    assert "Privacy policy" in result.matches[0].chunk.text
+
+
+def test_execute_tool_requires_query_argument_for_pdf_keyword_search(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="Missing required argument: query"):
+        execute_tool(
+            tool_name="search_pdf_text",
+            arguments={"filename": "sample.pdf"},
+            project_root=tmp_path,
+        )
