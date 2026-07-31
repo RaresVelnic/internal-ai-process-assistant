@@ -323,3 +323,225 @@ Why this matters:
 - a future UI can display compact source references;
 - a future LLM can use citations when generating answers;
 - retrieval stays explainable before semantic search is introduced.
+
+## Completed Step: Deterministic Vector Retrieval
+
+The project now has a complete local vector retrieval workflow using deterministic embeddings.
+
+The workflow is:
+
+```text
+User request
+-> CLI
+-> minimal rule-based agent
+-> controlled tool executor
+-> search_pdf_by_vector
+-> PDF text extraction
+-> source-aware chunking
+-> deterministic embeddings
+-> in-memory vector store
+-> cosine similarity search
+-> ranked matches with citations
+```
+
+Supported CLI example:
+
+```bash
+python -m internal_ai_process_assistant.cli "search pdf sample.pdf by vector for privacy"
+```
+
+Expected structured result shape:
+
+```json
+{
+  "status": "completed",
+  "message": "Searched PDF file sample.pdf by vector for \"privacy\".",
+  "tool_name": "search_pdf_by_vector",
+  "result": {
+    "filename": "sample.pdf",
+    "query": "privacy",
+    "match_count": 2,
+    "matches": [
+      {
+        "text": "...",
+        "score": 0.0881160196684866,
+        "citation": "sample.pdf, page 2, chunk 1",
+        "chunk_index": 1,
+        "source_filename": "sample.pdf",
+        "page_number": 2
+      }
+    ]
+  }
+}
+```
+
+### Architecture Decision: Deterministic Embeddings First
+
+Decision:
+
+- use deterministic embeddings for the first vector retrieval pipeline;
+- keep the embedding interface independent from any external provider;
+- store embedded chunks in a simple in-memory vector store;
+- use cosine similarity for local vector search.
+
+Reason:
+
+- tests remain fast, stable, and offline;
+- no API key is required;
+- no external API calls are introduced;
+- no local model dependency is introduced yet;
+- the project can validate the retrieval architecture before paying the complexity cost of real embeddings.
+
+Rejected alternatives for this step:
+
+- OpenAI or other API embeddings;
+- local transformer embedding models;
+- vector databases such as Chroma, Qdrant, or FAISS;
+- LangChain abstractions;
+- LLM-generated answers.
+
+Impact:
+
+- the retrieval pipeline is now structurally realistic;
+- source citations remain attached to retrieval results;
+- the vector search behavior is not semantically meaningful yet;
+- deterministic vector rankings may look unintuitive for natural-language queries;
+- real embeddings can later replace the deterministic provider behind the same interface.
+
+### How the Current Embedding Model Works
+
+The current embedding implementation is deterministic and intentionally simple.
+
+It works by:
+
+- normalizing text with case folding and whitespace cleanup;
+- splitting the normalized text into tokens;
+- hashing each token into one of a fixed number of vector dimensions;
+- adding a deterministic token weight to that dimension;
+- normalizing the final vector to unit length.
+
+This creates stable vectors for the same input text. For example, these inputs produce the same vector:
+
+```text
+"Internal assistant"
+"  internal   assistant  "
+```
+
+The current model is useful because it lets the project test:
+
+- embedding data structures;
+- chunk-to-vector conversion;
+- vector storage;
+- cosine similarity search;
+- ranking behavior;
+- source metadata preservation;
+- citations attached to retrieved chunks;
+- CLI and tool integration.
+
+The current model is not a real semantic embedding model.
+
+It does not understand:
+
+- meaning;
+- synonyms;
+- paraphrases;
+- context;
+- domain concepts;
+- semantic similarity.
+
+For example, a real embedding model should understand that these are related:
+
+```text
+"privacy policy"
+"data protection rules"
+```
+
+The deterministic model does not reliably understand that relationship. It only creates repeatable numeric vectors from token hashes.
+
+### How the Current Vector Store Works
+
+The current vector store is an in-memory store.
+
+It works by:
+
+- accepting `EmbeddedChunk` objects;
+- keeping them in a Python list;
+- embedding the query with the same deterministic embedding function;
+- comparing the query vector with each stored chunk vector;
+- ranking results by cosine similarity;
+- returning the highest-scoring matches.
+
+Cosine similarity measures whether two vectors point in a similar direction.
+
+In this project, each vector search result keeps:
+
+- the original chunk text;
+- the similarity score;
+- the source filename;
+- the page number when available;
+- the chunk index;
+- the formatted citation.
+
+This keeps retrieval explainable and traceable even before LLM-generated answers are introduced.
+
+### Why This Is Still Useful Without Real Semantic Embeddings
+
+This step validates the retrieval architecture without adding provider complexity too early.
+
+The project can now prove that the following pipeline works end-to-end:
+
+```text
+controlled input file
+-> extracted text
+-> source-aware chunks
+-> embeddings
+-> vector storage
+-> vector search
+-> ranked matches
+-> citations
+-> CLI response
+```
+
+Later, a real embedding provider can replace only the embedding function.
+
+The rest of the pipeline should remain mostly stable:
+
+- chunk metadata;
+- embedded chunk structure;
+- vector store interface;
+- retrieval result shape;
+- citation formatting;
+- tests around source traceability.
+
+### Security Decisions
+
+- PDF input still comes only from the controlled `input/` directory;
+- file validation still rejects arbitrary paths and unsupported input types;
+- no secrets are required;
+- no network calls are made;
+- runtime files remain ignored by Git;
+- retrieval results preserve source filename, page number, chunk index, and citation text.
+
+### Current Phase 3 Status
+
+Completed:
+
+- document text chunking;
+- PDF text chunking;
+- local keyword search;
+- local PDF keyword retrieval;
+- retrieval citation formatting;
+- deterministic embedding utilities;
+- in-memory vector store;
+- local PDF vector retrieval workflow;
+- tool registry and executor integration;
+- minimal agent and CLI integration.
+
+Not implemented yet:
+
+- real semantic embeddings;
+- persistent vector store;
+- hybrid keyword/vector retrieval;
+- LLM answer generation;
+- LangChain;
+- LangGraph.
