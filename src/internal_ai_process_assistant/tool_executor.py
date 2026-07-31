@@ -4,6 +4,10 @@ from pathlib import Path
 from typing import Any
 
 from internal_ai_process_assistant.rag.pdf_retrieval import PdfRetrievalResult, search_pdf_text
+from internal_ai_process_assistant.rag.pdf_vector_retrieval import (
+    PdfVectorRetrievalResult,
+    retrieve_pdf_chunks_by_vector,
+)
 
 from internal_ai_process_assistant.tools.basic_report import (
     BasicReportResult,
@@ -23,7 +27,15 @@ from internal_ai_process_assistant.tools.input_file_validation import (
 )
 
 ToolExecutionResult = (
-    FileListResult | InputFileValidationResult | CsvInspectionResult | ExcelInspectionResult | PdfInspectionResult | PdfTextExtractionResult | PdfRetrievalResult | BasicReportResult
+    FileListResult
+    | InputFileValidationResult
+    | CsvInspectionResult
+    | ExcelInspectionResult
+    | PdfInspectionResult
+    | PdfTextExtractionResult
+    | PdfRetrievalResult
+    | PdfVectorRetrievalResult
+    | BasicReportResult
 )
 
 
@@ -65,6 +77,15 @@ def execute_tool(
         filename = _get_required_string_argument(arguments, "filename")
         query = _get_required_string_argument(arguments, "query")
         return search_pdf_text(filename=filename, query=query, project_root=project_root)
+
+    if tool_name == "search_pdf_by_vector":
+        filename = _get_required_string_argument(arguments, "filename")
+        query = _get_required_string_argument(arguments, "query")
+        return retrieve_pdf_chunks_by_vector(
+            filename=filename,
+            query=query,
+            project_root=project_root,
+        )
 
     if tool_name == "generate_basic_report":
         filename = _get_required_string_argument(arguments, "filename")
