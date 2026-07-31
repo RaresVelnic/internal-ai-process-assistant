@@ -145,3 +145,78 @@ This strategy step is complete when:
 - tests still pass;
 - Ruff still passes;
 - documentation is committed and pushed.
+
+## Completed Implementation
+
+The initial embedding strategy has now been implemented.
+
+Implemented components:
+
+- `EmbeddingVector`;
+- `EmbeddedChunk`;
+- deterministic embedding generation;
+- chunk embedding conversion;
+- in-memory vector storage;
+- cosine similarity search;
+- local PDF vector retrieval;
+- tool registry and executor integration;
+- minimal agent and CLI integration;
+- automated tests for the embedding and vector retrieval path.
+
+The implemented workflow is:
+
+1. Extract bounded text from a controlled PDF input file.
+2. Split extracted text into source-aware chunks.
+3. Convert chunks into deterministic embedding vectors.
+4. Store embedded chunks in an in-memory vector store.
+5. Embed the user query with the same deterministic function.
+6. Rank chunks by cosine similarity.
+7. Return structured matches with source citations.
+
+This confirms that the retrieval pipeline can operate end-to-end before introducing real semantic embeddings.
+
+## Current Limitation
+
+The current embedding implementation is deterministic, but not semantic.
+
+It is useful for testing:
+
+- data structures;
+- metadata preservation;
+- vector storage;
+- similarity ranking;
+- source citations;
+- CLI and tool integration.
+
+It is not useful for judging real semantic retrieval quality.
+
+The deterministic embedding function does not understand synonyms, paraphrases, intent, or domain meaning. A future real embedding provider is required before the project can claim semantic search quality.
+
+## Updated Decision
+
+The project will keep deterministic embeddings as the default test provider.
+
+Reason:
+
+- tests remain offline;
+- test results remain stable;
+- no secrets are needed;
+- no provider-specific code is forced into the core retrieval pipeline;
+- the architecture can later support a real provider behind the same interface.
+
+Future work should add a real embedding provider without removing deterministic embeddings, because deterministic embeddings remain valuable for fast infrastructure tests.
+
+## Next Step
+
+The next embedding-related step is to choose and implement a real embedding provider.
+
+The first real provider should be selected based on:
+
+- low setup friction;
+- clear pricing or free tier;
+- good documentation;
+- reasonable privacy posture;
+- compatibility with the existing `EmbeddingVector` and `EmbeddedChunk` structures;
+- portfolio value for applied AI and backend roles.
+
+The project should still avoid LLM-generated answers until semantic retrieval quality can be tested independently.
