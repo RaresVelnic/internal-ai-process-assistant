@@ -220,3 +220,101 @@ The first real provider should be selected based on:
 - portfolio value for applied AI and backend roles.
 
 The project should still avoid LLM-generated answers until semantic retrieval quality can be tested independently.
+
+## Provider Decision: OpenAI Embeddings With Cost Guardrails
+
+The first real embedding provider will be OpenAI `text-embedding-3-small`.
+
+This provider is selected as the primary candidate for the first real semantic retrieval implementation.
+
+Reasons:
+
+- it has strong portfolio value for applied AI and backend roles;
+- it is simple to integrate through a standard API workflow;
+- it is suitable for semantic search and RAG foundations;
+- it can replace the deterministic embedding provider behind the existing embedding interface;
+- the current listed price is low enough for small synthetic demo workloads.
+
+Important billing note:
+
+- ChatGPT Plus does not include OpenAI API usage.
+- OpenAI API usage is billed separately through the OpenAI Platform.
+- The project must treat API usage as paid usage even if the developer has a ChatGPT Plus subscription.
+
+Current pricing note:
+
+- As of 2026-08-03, OpenAI lists `text-embedding-3-small` at `$0.02` per 1 million input tokens.
+- Pricing can change, so implementation documentation should point to the official OpenAI pricing/model page rather than hard-coding assumptions in the code.
+
+Approximate cost examples at `$0.02` per 1 million tokens:
+
+- 100,000 tokens: about `$0.002`;
+- 1,000,000 tokens: about `$0.02`;
+- 10,000,000 tokens: about `$0.20`;
+- 100,000,000 tokens: about `$2.00`.
+
+The expected cost for the current demo project should be very small because the project uses tiny synthetic files. The main financial risk is not normal usage. The main risk is accidental repeated indexing, large files, or an uncontrolled loop.
+
+## Cost Safety Policy
+
+Real embedding API usage must be opt-in.
+
+The project should enforce these rules before making real API calls:
+
+- deterministic embeddings remain the default provider for tests;
+- automated tests must not call the OpenAI API;
+- OpenAI embeddings may run only when `OPENAI_API_KEY` is explicitly configured;
+- real embeddings should require an explicit provider selection;
+- no full-folder auto-indexing should happen by default;
+- each run should limit the number of chunks sent to the provider;
+- each run should estimate token usage before making API calls;
+- each run should estimate cost before making API calls;
+- large inputs should be rejected or require explicit confirmation in a later human-in-the-loop phase;
+- retry behavior must be limited;
+- API keys must never be committed to Git;
+- API keys must never be printed in logs;
+- API usage should be documented as paid usage.
+
+Recommended initial limits:
+
+- maximum chunks per embedding run: 20;
+- maximum estimated input tokens per run: 20,000;
+- default provider: deterministic;
+- real provider: OpenAI only when explicitly selected.
+
+At the current listed price, 20,000 tokens would cost roughly `$0.0004` with `text-embedding-3-small`.
+
+## Rejected Provider Options For Now
+
+Google Gemini free tier is rejected for this project stage.
+
+Reason:
+
+- the free tier may allow provider-side data use for product improvement;
+- the project is security- and privacy-oriented;
+- even though the current demo files are synthetic, the portfolio story should stay conservative.
+
+Cohere, Voyage AI, Jina AI, and Hugging Face are deferred.
+
+Reason:
+
+- they may be useful later;
+- some have generous free tiers or interesting search tooling;
+- however, they introduce extra provider research and unfamiliar billing models;
+- the current project benefits more from a conservative, widely recognized first provider.
+
+## Updated Implementation Direction
+
+The next implementation step is not to call the OpenAI API directly.
+
+The next implementation step is to introduce an embedding provider abstraction.
+
+The provider abstraction should support:
+
+- deterministic embeddings for tests and offline development;
+- OpenAI embeddings as a future opt-in provider;
+- shared return types based on `EmbeddingVector`;
+- consistent source metadata through `EmbeddedChunk`;
+- cost estimation before paid provider calls.
+
+This keeps the retrieval pipeline stable while allowing the real embedding provider to be added safely later.
