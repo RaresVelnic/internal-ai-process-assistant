@@ -9,7 +9,11 @@ from internal_ai_process_assistant.rag.embedding_costs import (
     DEFAULT_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN,
     validate_embedding_usage_limits,
 )
-from internal_ai_process_assistant.rag.embeddings import create_deterministic_embedding, embed_chunks
+from internal_ai_process_assistant.rag.embeddings import (
+    DeterministicEmbeddingProvider,
+    EmbeddingProvider,
+    embed_chunks,
+)
 from internal_ai_process_assistant.rag.pdf_chunking import chunk_pdf_text
 from internal_ai_process_assistant.rag.vector_store import InMemoryVectorStore
 
@@ -51,6 +55,7 @@ def retrieve_pdf_chunks_by_vector(
     chunk_overlap: int = 50,
     max_chunks: int = DEFAULT_MAX_EMBEDDING_CHUNKS_PER_RUN,
     max_estimated_tokens: int = DEFAULT_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN,
+    provider: EmbeddingProvider | None = None,
 ) -> PdfVectorRetrievalResult:
     """Retrieve PDF chunks with deterministic vector similarity."""
     normalized_query = query.strip()
@@ -77,12 +82,13 @@ def retrieve_pdf_chunks_by_vector(
         max_chunks=max_chunks,
         max_estimated_tokens=max_estimated_tokens,
     )
-    embedded_chunks = embed_chunks(chunks)
+    embedding_provider = provider or DeterministicEmbeddingProvider()
+    embedded_chunks = embed_chunks(chunks, provider=embedding_provider)
 
     store = InMemoryVectorStore()
     store.add_many(embedded_chunks)
 
-    query_embedding = create_deterministic_embedding(normalized_query)
+    query_embedding = embedding_provider.embed_text(normalized_query)
     search_results = store.search(query_embedding, top_k=top_k)
 
     matches = [

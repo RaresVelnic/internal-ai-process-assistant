@@ -3,6 +3,9 @@
 from pathlib import Path
 from typing import Any
 
+from internal_ai_process_assistant.config import AppConfig
+from internal_ai_process_assistant.rag.embedding_provider_factory import get_embedding_provider
+
 from internal_ai_process_assistant.rag.pdf_retrieval import PdfRetrievalResult, search_pdf_text
 from internal_ai_process_assistant.rag.pdf_vector_retrieval import (
     PdfVectorRetrievalResult,
@@ -43,6 +46,7 @@ def execute_tool(
     tool_name: str,
     arguments: dict[str, Any],
     project_root: Path,
+    config: AppConfig | None = None,
 ) -> ToolExecutionResult:
     """Execute a registered tool with validated arguments."""
     if tool_name == "list_available_files":
@@ -90,10 +94,13 @@ def execute_tool(
         if max_estimated_tokens is not None:
             keyword_arguments["max_estimated_tokens"] = max_estimated_tokens
 
+        provider = get_embedding_provider(config) if config is not None else None
+
         return retrieve_pdf_chunks_by_vector(
             filename=filename,
             query=query,
             project_root=project_root,
+            provider=provider,
             **keyword_arguments,
         )
 

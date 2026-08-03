@@ -282,6 +282,7 @@ def _try_handle_pdf_vector_search(
             "max_estimated_tokens": config.max_estimated_embedding_tokens_per_run,
         },
         project_root=project_root,
+        config=config,
     )
 
     return AgentResponse(
