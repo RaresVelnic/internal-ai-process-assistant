@@ -4,6 +4,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from internal_ai_process_assistant.rag.citations import format_chunk_citation
+from internal_ai_process_assistant.rag.embedding_costs import (
+    DEFAULT_MAX_EMBEDDING_CHUNKS_PER_RUN,
+    DEFAULT_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN,
+    validate_embedding_usage_limits,
+)
 from internal_ai_process_assistant.rag.embeddings import create_deterministic_embedding, embed_chunks
 from internal_ai_process_assistant.rag.pdf_chunking import chunk_pdf_text
 from internal_ai_process_assistant.rag.vector_store import InMemoryVectorStore
@@ -32,6 +37,9 @@ class PdfVectorRetrievalResult:
     query: str
     match_count: int
     matches: list[PdfVectorRetrievalMatch]
+    embedding_model_name: str
+    estimated_tokens: int
+    estimated_cost_usd: str
 
 
 def retrieve_pdf_chunks_by_vector(
@@ -41,6 +49,8 @@ def retrieve_pdf_chunks_by_vector(
     top_k: int = DEFAULT_VECTOR_RETRIEVAL_TOP_K,
     chunk_size: int = 500,
     chunk_overlap: int = 50,
+    max_chunks: int = DEFAULT_MAX_EMBEDDING_CHUNKS_PER_RUN,
+    max_estimated_tokens: int = DEFAULT_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN,
 ) -> PdfVectorRetrievalResult:
     """Retrieve PDF chunks with deterministic vector similarity."""
     normalized_query = query.strip()
@@ -51,6 +61,9 @@ def retrieve_pdf_chunks_by_vector(
             query=query,
             match_count=0,
             matches=[],
+            embedding_model_name="text-embedding-3-small",
+            estimated_tokens=0,
+            estimated_cost_usd="0.0000000",
         )
 
     chunks = chunk_pdf_text(
@@ -58,6 +71,11 @@ def retrieve_pdf_chunks_by_vector(
         project_root=project_root,
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
+    )
+    usage_estimate = validate_embedding_usage_limits(
+        chunks=chunks,
+        max_chunks=max_chunks,
+        max_estimated_tokens=max_estimated_tokens,
     )
     embedded_chunks = embed_chunks(chunks)
 
@@ -84,4 +102,7 @@ def retrieve_pdf_chunks_by_vector(
         query=normalized_query,
         match_count=len(matches),
         matches=matches,
+        embedding_model_name=usage_estimate.model_name,
+        estimated_tokens=usage_estimate.estimated_tokens,
+        estimated_cost_usd=str(usage_estimate.estimated_cost_usd),
     )

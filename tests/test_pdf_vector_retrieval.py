@@ -36,6 +36,21 @@ def test_retrieve_pdf_chunks_by_vector_returns_matches(sample_pdf_in_input: str)
     assert all(isinstance(match, PdfVectorRetrievalMatch) for match in result.matches)
 
 
+def test_retrieve_pdf_chunks_by_vector_returns_usage_estimate(
+    sample_pdf_in_input: str,
+) -> None:
+    result = retrieve_pdf_chunks_by_vector(
+        filename=sample_pdf_in_input,
+        query="assistant",
+        project_root=Path.cwd(),
+        top_k=1,
+    )
+
+    assert result.embedding_model_name == "text-embedding-3-small"
+    assert result.estimated_tokens > 0
+    assert float(result.estimated_cost_usd) > 0
+
+
 def test_retrieve_pdf_chunks_by_vector_returns_citations(sample_pdf_in_input: str) -> None:
     result = retrieve_pdf_chunks_by_vector(
         filename=sample_pdf_in_input,
@@ -87,6 +102,8 @@ def test_retrieve_pdf_chunks_by_vector_returns_empty_result_for_empty_query(
     assert result.query == "   "
     assert result.match_count == 0
     assert result.matches == []
+    assert result.estimated_tokens == 0
+    assert result.estimated_cost_usd == "0.0000000"
 
 
 def test_retrieve_pdf_chunks_by_vector_rejects_invalid_top_k(sample_pdf_in_input: str) -> None:
@@ -96,4 +113,28 @@ def test_retrieve_pdf_chunks_by_vector_rejects_invalid_top_k(sample_pdf_in_input
             query="assistant",
             project_root=Path.cwd(),
             top_k=0,
+        )
+
+
+def test_retrieve_pdf_chunks_by_vector_rejects_too_many_chunks(
+    sample_pdf_in_input: str,
+) -> None:
+    with pytest.raises(ValueError, match="exceeds the limit of 1"):
+        retrieve_pdf_chunks_by_vector(
+            filename=sample_pdf_in_input,
+            query="assistant",
+            project_root=Path.cwd(),
+            max_chunks=1,
+        )
+
+
+def test_retrieve_pdf_chunks_by_vector_rejects_too_many_estimated_tokens(
+    sample_pdf_in_input: str,
+) -> None:
+    with pytest.raises(ValueError, match="exceeds the limit of 1"):
+        retrieve_pdf_chunks_by_vector(
+            filename=sample_pdf_in_input,
+            query="assistant",
+            project_root=Path.cwd(),
+            max_estimated_tokens=1,
         )
