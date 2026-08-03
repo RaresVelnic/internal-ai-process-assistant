@@ -386,3 +386,45 @@ Security impact:
 - no OpenAI API calls are made yet.
 
 This prepares the project for a future OpenAI embedding provider while keeping the current runtime offline and controlled.
+
+## Completed Step: Embedding Provider Factory
+
+The project now has a central embedding provider factory.
+
+Decision:
+
+- provider selection is handled by `get_embedding_provider`;
+- `deterministic` returns the local deterministic embedding provider;
+- `openai` is recognized as a valid configured provider;
+- `openai` intentionally raises `NotImplementedError` until the real provider is implemented;
+- PDF vector retrieval now receives its embedding provider through configuration.
+
+Reason:
+
+- provider selection should live in one place;
+- tests and local development must remain deterministic by default;
+- OpenAI integration should be opt-in and explicit;
+- the project should not make paid API calls before the provider implementation and safety checks are ready;
+- future providers can be added behind the same interface.
+
+Rejected alternatives for this step:
+
+- calling OpenAI directly from the PDF retrieval workflow;
+- hardcoding provider selection inside vector retrieval;
+- introducing LangChain provider abstractions too early;
+- adding a real API dependency before the internal provider boundary is stable.
+
+Impact:
+
+- the vector retrieval workflow is now provider-aware;
+- deterministic embeddings remain the default;
+- OpenAI is prepared as a future provider but cannot run accidentally;
+- the architecture is easier to test and extend;
+- cost and privacy guardrails remain intact.
+
+Current behavior:
+
+- `IAPA_EMBEDDING_PROVIDER=deterministic` works for local vector retrieval;
+- `IAPA_EMBEDDING_PROVIDER=openai` requires `OPENAI_API_KEY`;
+- after config loads successfully, OpenAI provider selection still fails intentionally with `NotImplementedError`;
+- no OpenAI API calls are made yet.
