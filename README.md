@@ -121,6 +121,29 @@ Run linting:
 ruff check .
 ```
 
+## Configuration
+
+The project includes `.env.example` for local configuration.
+
+The default embedding provider is deterministic: `IAPA_EMBEDDING_PROVIDER=deterministic`.
+
+This default does not call external APIs and is used for local development and automated tests.
+
+A future OpenAI embedding provider is documented but remains opt-in. It uses:
+
+- `IAPA_EMBEDDING_PROVIDER=openai`;
+- `OPENAI_API_KEY=`;
+- `IAPA_OPENAI_EMBEDDING_MODEL=text-embedding-3-small`.
+
+OpenAI API usage is separate from ChatGPT Plus and should be treated as paid usage.
+
+Embedding usage guardrails can be configured with:
+
+- `IAPA_MAX_EMBEDDING_CHUNKS_PER_RUN=20`;
+- `IAPA_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN=20000`.
+
+The current runtime uses these settings to limit PDF vector retrieval before embeddings are generated. No OpenAI API calls are made yet.
+
 ## Prepare demo input files
 
 Copy the public synthetic demo files into the local runtime input directory:
