@@ -351,3 +351,38 @@ Example CLI result fields:
 - `estimated_cost_usd`.
 
 This keeps the retrieval workflow transparent and prepares the project for paid embedding providers without making real API calls yet.
+
+## Completed Implementation: Runtime Embedding Configuration
+
+The embedding safety settings are now connected to the runtime workflow.
+
+Implemented behavior:
+
+- `.env.example` documents embedding-related configuration;
+- `.env` remains ignored by Git;
+- the default embedding provider is `deterministic`;
+- the `openai` provider option requires `OPENAI_API_KEY`;
+- the CLI loads runtime config before running the minimal agent;
+- the minimal agent accepts optional runtime config;
+- PDF vector retrieval receives configured embedding usage limits;
+- the tool executor validates optional vector retrieval limit arguments;
+- automated tests verify safe defaults and config error handling.
+
+Current configuration variables:
+
+- `IAPA_EMBEDDING_PROVIDER`;
+- `OPENAI_API_KEY`;
+- `IAPA_OPENAI_EMBEDDING_MODEL`;
+- `IAPA_MAX_EMBEDDING_CHUNKS_PER_RUN`;
+- `IAPA_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN`.
+
+Security impact:
+
+- real API usage remains opt-in;
+- missing OpenAI API keys fail fast when the OpenAI provider is selected;
+- deterministic embeddings remain safe for tests and local development;
+- cost guardrails can be changed without editing code;
+- no secrets are committed to Git;
+- no OpenAI API calls are made yet.
+
+This prepares the project for a future OpenAI embedding provider while keeping the current runtime offline and controlled.
