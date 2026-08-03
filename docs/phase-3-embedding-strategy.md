@@ -428,3 +428,46 @@ Current behavior:
 - `IAPA_EMBEDDING_PROVIDER=openai` requires `OPENAI_API_KEY`;
 - after config loads successfully, OpenAI provider selection still fails intentionally with `NotImplementedError`;
 - no OpenAI API calls are made yet.
+
+## Completed Step: OpenAI Embedding Provider Placeholder
+
+The project now has a dedicated OpenAI embedding provider placeholder.
+
+Decision:
+
+- OpenAI provider code lives in `openai_embeddings.py`;
+- provider selection still happens through `get_embedding_provider`;
+- the OpenAI provider stores the configured API key and model name;
+- the provider validates empty API keys, empty model names, and empty text input;
+- real OpenAI API calls are intentionally not implemented yet.
+
+Reason:
+
+- the project needs a clean provider boundary before adding a real SDK dependency;
+- paid API calls should not be introduced accidentally;
+- provider configuration can now be tested without network access;
+- future OpenAI integration can be implemented inside one dedicated module;
+- deterministic embeddings remain the default for local development and tests.
+
+Rejected alternatives for this step:
+
+- installing the OpenAI SDK immediately;
+- calling the OpenAI API directly from retrieval code;
+- placing OpenAI-specific logic inside the vector retrieval workflow;
+- allowing OpenAI provider selection to silently call an external API.
+
+Impact:
+
+- the OpenAI integration path is now explicit;
+- tests remain offline and deterministic;
+- provider configuration is validated;
+- the codebase is ready for a future real OpenAI provider implementation;
+- no secrets are committed;
+- no OpenAI API calls are made yet.
+
+Current behavior:
+
+- `IAPA_EMBEDDING_PROVIDER=deterministic` keeps using local deterministic embeddings;
+- `IAPA_EMBEDDING_PROVIDER=openai` can construct an OpenAI provider placeholder when `OPENAI_API_KEY` is set;
+- calling `embed_text()` on the OpenAI provider raises `NotImplementedError`;
+- this prevents accidental paid API usage before the implementation is intentionally enabled.
