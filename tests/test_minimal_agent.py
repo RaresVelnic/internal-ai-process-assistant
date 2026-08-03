@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from internal_ai_process_assistant.minimal_agent import run_minimal_agent
 from internal_ai_process_assistant.tools.basic_report import BasicReportResult
 from internal_ai_process_assistant.tools.csv_inspection import CsvInspectionResult
@@ -291,3 +293,37 @@ def test_run_minimal_agent_rejects_pdf_vector_search_with_empty_query(tmp_path: 
     assert response.status == "unsupported_request"
     assert response.tool_name is None
     assert response.result is None
+
+def test_run_minimal_agent_uses_configured_vector_search_chunk_limit(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    from internal_ai_process_assistant.config import AppConfig
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Privacy policy document")
+    pdf.showPage()
+    pdf.drawString(72, height - 72, "Second privacy page")
+    pdf.showPage()
+    pdf.save()
+
+    config = AppConfig(
+        embedding_provider="deterministic",
+        openai_api_key=None,
+        openai_embedding_model="text-embedding-3-small",
+        max_embedding_chunks_per_run=1,
+        max_estimated_embedding_tokens_per_run=20_000,
+    )
+
+    with pytest.raises(ValueError, match="exceeds the limit of 1"):
+        run_minimal_agent(
+            "search pdf sample.pdf by vector for privacy",
+            tmp_path,
+            config=config,
+        )
+

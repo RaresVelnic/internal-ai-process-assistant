@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import sys
 
+from internal_ai_process_assistant.config import load_config
 from internal_ai_process_assistant.minimal_agent import run_minimal_agent
 
 
@@ -22,7 +23,21 @@ def main() -> int:
         )
         return 2
 
-    response = run_minimal_agent(request=sys.argv[1], project_root=Path.cwd())
+    try:
+        config = load_config()
+    except ValueError as error:
+        print(
+            json.dumps(
+                {
+                    "status": "error",
+                    "message": str(error),
+                },
+                indent=2,
+            )
+        )
+        return 2
+
+    response = run_minimal_agent(request=sys.argv[1], project_root=Path.cwd(), config=config)
     print(json.dumps(asdict(response), indent=2))
     return 0 if response.status == "completed" else 1
 

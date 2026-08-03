@@ -279,3 +279,44 @@ def test_execute_tool_requires_query_argument_for_pdf_vector_search(tmp_path: Pa
             arguments={"filename": "sample.pdf"},
             project_root=tmp_path,
         )
+
+
+def test_execute_tool_passes_pdf_vector_search_usage_limits(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Privacy policy document")
+    pdf.showPage()
+    pdf.drawString(72, height - 72, "Second privacy page")
+    pdf.showPage()
+    pdf.save()
+
+    with pytest.raises(ValueError, match="exceeds the limit of 1"):
+        execute_tool(
+            tool_name="search_pdf_by_vector",
+            arguments={
+                "filename": "sample.pdf",
+                "query": "privacy",
+                "max_chunks": 1,
+            },
+            project_root=tmp_path,
+        )
+
+
+def test_execute_tool_requires_pdf_vector_search_limit_to_be_integer(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="max_chunks must be an integer"):
+        execute_tool(
+            tool_name="search_pdf_by_vector",
+            arguments={
+                "filename": "sample.pdf",
+                "query": "privacy",
+                "max_chunks": "many",
+            },
+            project_root=tmp_path,
+        )

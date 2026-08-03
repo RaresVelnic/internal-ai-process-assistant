@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
+from internal_ai_process_assistant.config import AppConfig, load_config
 from internal_ai_process_assistant.tool_executor import ToolExecutionResult, execute_tool
 
 AgentStatus = Literal["completed", "unsupported_request"]
@@ -35,9 +36,14 @@ SEARCH_PDF_BY_VECTOR_MARKER = " by vector for "
 GENERATE_REPORT_PREFIX = "generate report for "
 
 
-def run_minimal_agent(request: str, project_root: Path) -> AgentResponse:
+def run_minimal_agent(
+    request: str,
+    project_root: Path,
+    config: AppConfig | None = None,
+) -> AgentResponse:
     """Handle a small set of safe, rule-based requests."""
     normalized_request = request.strip().lower()
+    runtime_config = config or load_config({})
 
     file_listing_response = _try_handle_file_listing(normalized_request, project_root)
     if file_listing_response is not None:
@@ -66,7 +72,11 @@ def run_minimal_agent(request: str, project_root: Path) -> AgentResponse:
     if pdf_text_extraction_response is not None:
         return pdf_text_extraction_response
 
-    pdf_vector_search_response = _try_handle_pdf_vector_search(normalized_request, project_root)
+    pdf_vector_search_response = _try_handle_pdf_vector_search(
+        normalized_request,
+        project_root,
+        runtime_config,
+    )
     if pdf_vector_search_response is not None:
         return pdf_vector_search_response
 
@@ -237,7 +247,11 @@ def _try_handle_pdf_text_extraction(
         result=result,
     )
 
-def _try_handle_pdf_vector_search(request: str, project_root: Path) -> AgentResponse | None:
+def _try_handle_pdf_vector_search(
+    request: str,
+    project_root: Path,
+    config: AppConfig,
+) -> AgentResponse | None:
     """Handle explicit local PDF vector search requests."""
     if not request.startswith(SEARCH_PDF_PREFIX):
         return None
@@ -261,7 +275,12 @@ def _try_handle_pdf_vector_search(request: str, project_root: Path) -> AgentResp
 
     result = execute_tool(
         tool_name="search_pdf_by_vector",
-        arguments={"filename": filename, "query": query},
+        arguments={
+            "filename": filename,
+            "query": query,
+            "max_chunks": config.max_embedding_chunks_per_run,
+            "max_estimated_tokens": config.max_estimated_embedding_tokens_per_run,
+        },
         project_root=project_root,
     )
 

@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -63,3 +64,29 @@ def test_cli_returns_nonzero_for_unsupported_request(tmp_path: Path) -> None:
 
     assert completed_process.returncode == 1
     assert payload["status"] == "unsupported_request"
+
+def test_cli_reports_config_error_for_openai_without_api_key(tmp_path: Path) -> None:
+    environment = os.environ.copy()
+    environment["IAPA_EMBEDDING_PROVIDER"] = "openai"
+    environment.pop("OPENAI_API_KEY", None)
+
+    completed_process = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "internal_ai_process_assistant.cli",
+            "list files in input",
+        ],
+        cwd=tmp_path,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(completed_process.stdout)
+
+    assert completed_process.returncode == 2
+    assert payload["status"] == "error"
+    assert "OPENAI_API_KEY is required" in payload["message"]
+
