@@ -1,9 +1,10 @@
-"""Deterministic embedding utilities for the RAG foundation."""
+"""Embedding utilities for the RAG foundation."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Protocol
 import hashlib
 import math
-from collections.abc import Sequence
 
 from internal_ai_process_assistant.rag.text_chunking import DocumentChunk
 
@@ -29,6 +30,24 @@ class EmbeddedChunk:
 
     chunk: DocumentChunk
     embedding: EmbeddingVector
+
+
+class EmbeddingProvider(Protocol):
+    """Interface for embedding providers."""
+
+    def embed_text(self, text: str) -> EmbeddingVector:
+        """Create an embedding vector for text."""
+
+
+@dataclass(frozen=True)
+class DeterministicEmbeddingProvider:
+    """Deterministic embedding provider for tests and local development."""
+
+    dimensions: int = DEFAULT_EMBEDDING_DIMENSIONS
+
+    def embed_text(self, text: str) -> EmbeddingVector:
+        """Create a deterministic embedding vector for text."""
+        return create_deterministic_embedding(text=text, dimensions=self.dimensions)
 
 
 def create_deterministic_embedding(
@@ -64,12 +83,15 @@ def create_deterministic_embedding(
 def embed_chunks(
     chunks: Sequence[DocumentChunk],
     dimensions: int = DEFAULT_EMBEDDING_DIMENSIONS,
+    provider: EmbeddingProvider | None = None,
 ) -> list[EmbeddedChunk]:
-    """Create deterministic embeddings for document chunks."""
+    """Create embeddings for document chunks."""
+    embedding_provider = provider or DeterministicEmbeddingProvider(dimensions=dimensions)
+
     return [
         EmbeddedChunk(
             chunk=chunk,
-            embedding=create_deterministic_embedding(chunk.text, dimensions=dimensions),
+            embedding=embedding_provider.embed_text(chunk.text),
         )
         for chunk in chunks
     ]
