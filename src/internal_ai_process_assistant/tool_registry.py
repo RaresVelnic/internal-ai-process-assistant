@@ -100,6 +100,16 @@ def list_tools() -> list[ToolDefinition]:
             ),
         ),
         ToolDefinition(
+            name="estimate_pdf_vector_retrieval",
+            description="Estimate PDF vector retrieval chunks, tokens, and cost without embedding.",
+            parameters=(
+                ToolParameter(
+                    name="filename",
+                    description="PDF filename located in the input directory.",
+                ),
+            ),
+        ),
+        ToolDefinition(
             name="search_pdf_by_vector",
             description="Search a PDF document with local vector retrieval.",
             parameters=(

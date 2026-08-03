@@ -320,3 +320,51 @@ def test_execute_tool_requires_pdf_vector_search_limit_to_be_integer(tmp_path: P
             },
             project_root=tmp_path,
         )
+
+def test_execute_tool_runs_pdf_vector_estimate_tool(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Privacy policy document")
+    pdf.showPage()
+    pdf.save()
+
+    result = execute_tool(
+        tool_name="estimate_pdf_vector_retrieval",
+        arguments={"filename": "sample.pdf"},
+        project_root=tmp_path,
+    )
+
+    assert result.filename == "sample.pdf"
+    assert result.chunk_count > 0
+    assert result.embedding_model_name == "text-embedding-3-small"
+    assert result.estimated_tokens > 0
+    assert float(result.estimated_cost_usd) > 0
+
+
+def test_execute_tool_applies_pdf_vector_estimate_guardrails(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Privacy policy document")
+    pdf.showPage()
+    pdf.save()
+
+    with pytest.raises(ValueError, match="exceeds the limit of 1"):
+        execute_tool(
+            tool_name="estimate_pdf_vector_retrieval",
+            arguments={"filename": "sample.pdf", "max_estimated_tokens": 1},
+            project_root=tmp_path,
+        )

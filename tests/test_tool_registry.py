@@ -14,6 +14,7 @@ def test_list_tools_returns_registered_tools() -> None:
         "inspect_pdf",
         "extract_pdf_text",
         "search_pdf_text",
+        "estimate_pdf_vector_retrieval",
         "search_pdf_by_vector",
         "generate_basic_report",
     }
@@ -90,4 +91,11 @@ def test_list_tools_describes_pdf_vector_search_parameters() -> None:
     assert [parameter.name for parameter in pdf_search_tool.parameters] == ["filename", "query"]
     assert pdf_search_tool.parameters[0].allowed_values == ()
     assert pdf_search_tool.parameters[1].allowed_values == ()
+
+def test_list_tools_describes_pdf_vector_estimate_parameters() -> None:
+    tools = list_tools()
+    estimate_tool = next(tool for tool in tools if tool.name == "estimate_pdf_vector_retrieval")
+
+    assert [parameter.name for parameter in estimate_tool.parameters] == ["filename"]
+    assert estimate_tool.parameters[0].allowed_values == ()
 

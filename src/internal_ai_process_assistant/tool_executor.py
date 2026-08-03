@@ -8,7 +8,9 @@ from internal_ai_process_assistant.rag.embedding_provider_factory import get_emb
 
 from internal_ai_process_assistant.rag.pdf_retrieval import PdfRetrievalResult, search_pdf_text
 from internal_ai_process_assistant.rag.pdf_vector_retrieval import (
+    PdfVectorRetrievalEstimate,
     PdfVectorRetrievalResult,
+    estimate_pdf_vector_retrieval_usage,
     retrieve_pdf_chunks_by_vector,
 )
 
@@ -37,6 +39,7 @@ ToolExecutionResult = (
     | PdfInspectionResult
     | PdfTextExtractionResult
     | PdfRetrievalResult
+    | PdfVectorRetrievalEstimate
     | PdfVectorRetrievalResult
     | BasicReportResult
 )
@@ -81,6 +84,23 @@ def execute_tool(
         filename = _get_required_string_argument(arguments, "filename")
         query = _get_required_string_argument(arguments, "query")
         return search_pdf_text(filename=filename, query=query, project_root=project_root)
+
+    if tool_name == "estimate_pdf_vector_retrieval":
+        filename = _get_required_string_argument(arguments, "filename")
+        max_chunks = _get_optional_int_argument(arguments, "max_chunks")
+        max_estimated_tokens = _get_optional_int_argument(arguments, "max_estimated_tokens")
+
+        keyword_arguments = {}
+        if max_chunks is not None:
+            keyword_arguments["max_chunks"] = max_chunks
+        if max_estimated_tokens is not None:
+            keyword_arguments["max_estimated_tokens"] = max_estimated_tokens
+
+        return estimate_pdf_vector_retrieval_usage(
+            filename=filename,
+            project_root=project_root,
+            **keyword_arguments,
+        )
 
     if tool_name == "search_pdf_by_vector":
         filename = _get_required_string_argument(arguments, "filename")
