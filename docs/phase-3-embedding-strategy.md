@@ -318,3 +318,36 @@ The provider abstraction should support:
 - cost estimation before paid provider calls.
 
 This keeps the retrieval pipeline stable while allowing the real embedding provider to be added safely later.
+
+## Completed Implementation: Embedding Usage Guardrails
+
+The PDF vector retrieval workflow now applies embedding usage guardrails before generating embeddings.
+
+Implemented behavior:
+
+- extracted PDF chunks are counted before embedding;
+- estimated token usage is calculated before embedding;
+- estimated embedding cost is calculated before embedding;
+- requests can be rejected if they exceed the configured chunk limit;
+- requests can be rejected if they exceed the configured estimated token limit;
+- the CLI response includes the embedding model name;
+- the CLI response includes estimated token usage;
+- the CLI response includes estimated cost in USD.
+
+Current default limits:
+
+- maximum chunks per embedding run: 20;
+- maximum estimated input tokens per run: 20,000;
+- default pricing reference: OpenAI `text-embedding-3-small`.
+
+The cost estimate is informational for the deterministic provider, because deterministic embeddings do not call an external API.
+
+The same guardrails are intentionally applied now so that a future OpenAI embedding provider can use the existing safety layer instead of adding cost control later.
+
+Example CLI result fields:
+
+- `embedding_model_name`;
+- `estimated_tokens`;
+- `estimated_cost_usd`.
+
+This keeps the retrieval workflow transparent and prepares the project for paid embedding providers without making real API calls yet.
