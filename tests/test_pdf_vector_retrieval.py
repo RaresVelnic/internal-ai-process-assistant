@@ -4,8 +4,10 @@ from shutil import copyfile
 import pytest
 
 from internal_ai_process_assistant.rag.pdf_vector_retrieval import (
+    PdfVectorRetrievalEstimate,
     PdfVectorRetrievalMatch,
     PdfVectorRetrievalResult,
+    estimate_pdf_vector_retrieval_usage,
     retrieve_pdf_chunks_by_vector,
 )
 
@@ -138,3 +140,41 @@ def test_retrieve_pdf_chunks_by_vector_rejects_too_many_estimated_tokens(
             project_root=Path.cwd(),
             max_estimated_tokens=1,
         )
+
+def test_estimate_pdf_vector_retrieval_usage_returns_dry_run_estimate(
+    sample_pdf_in_input: str,
+) -> None:
+    result = estimate_pdf_vector_retrieval_usage(
+        filename=sample_pdf_in_input,
+        project_root=Path.cwd(),
+    )
+
+    assert isinstance(result, PdfVectorRetrievalEstimate)
+    assert result.filename == sample_pdf_in_input
+    assert result.chunk_count > 0
+    assert result.embedding_model_name == "text-embedding-3-small"
+    assert result.estimated_tokens > 0
+    assert float(result.estimated_cost_usd) > 0
+
+
+def test_estimate_pdf_vector_retrieval_usage_applies_chunk_guardrail(
+    sample_pdf_in_input: str,
+) -> None:
+    with pytest.raises(ValueError, match="exceeds the limit of 1"):
+        estimate_pdf_vector_retrieval_usage(
+            filename=sample_pdf_in_input,
+            project_root=Path.cwd(),
+            max_chunks=1,
+        )
+
+
+def test_estimate_pdf_vector_retrieval_usage_applies_token_guardrail(
+    sample_pdf_in_input: str,
+) -> None:
+    with pytest.raises(ValueError, match="exceeds the limit of 1"):
+        estimate_pdf_vector_retrieval_usage(
+            filename=sample_pdf_in_input,
+            project_root=Path.cwd(),
+            max_estimated_tokens=1,
+        )
+

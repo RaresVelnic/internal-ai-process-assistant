@@ -46,6 +46,47 @@ class PdfVectorRetrievalResult:
     estimated_cost_usd: str
 
 
+@dataclass(frozen=True)
+class PdfVectorRetrievalEstimate:
+    """Dry-run estimate for PDF vector retrieval."""
+
+    filename: str
+    chunk_count: int
+    embedding_model_name: str
+    estimated_tokens: int
+    estimated_cost_usd: str
+
+
+def estimate_pdf_vector_retrieval_usage(
+    filename: str,
+    project_root: Path,
+    chunk_size: int = 500,
+    chunk_overlap: int = 50,
+    max_chunks: int = DEFAULT_MAX_EMBEDDING_CHUNKS_PER_RUN,
+    max_estimated_tokens: int = DEFAULT_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN,
+) -> PdfVectorRetrievalEstimate:
+    """Estimate PDF vector retrieval usage without creating embeddings."""
+    chunks = chunk_pdf_text(
+        filename=filename,
+        project_root=project_root,
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+    )
+    usage_estimate = validate_embedding_usage_limits(
+        chunks=chunks,
+        max_chunks=max_chunks,
+        max_estimated_tokens=max_estimated_tokens,
+    )
+
+    return PdfVectorRetrievalEstimate(
+        filename=filename,
+        chunk_count=usage_estimate.chunk_count,
+        embedding_model_name=usage_estimate.model_name,
+        estimated_tokens=usage_estimate.estimated_tokens,
+        estimated_cost_usd=str(usage_estimate.estimated_cost_usd),
+    )
+
+
 def retrieve_pdf_chunks_by_vector(
     filename: str,
     query: str,
