@@ -327,3 +327,75 @@ def test_run_minimal_agent_uses_configured_vector_search_chunk_limit(tmp_path: P
             config=config,
         )
 
+
+def test_run_minimal_agent_estimates_pdf_vector_retrieval(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    from internal_ai_process_assistant.rag.pdf_vector_retrieval import (
+        PdfVectorRetrievalEstimate,
+    )
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Privacy policy document")
+    pdf.showPage()
+    pdf.save()
+
+    response = run_minimal_agent("estimate vector search for sample.pdf", tmp_path)
+
+    assert response.status == "completed"
+    assert response.tool_name == "estimate_pdf_vector_retrieval"
+    assert isinstance(response.result, PdfVectorRetrievalEstimate)
+    assert response.result.filename == "sample.pdf"
+    assert response.result.chunk_count > 0
+    assert response.result.estimated_tokens > 0
+    assert float(response.result.estimated_cost_usd) > 0
+
+
+def test_run_minimal_agent_rejects_empty_pdf_vector_estimate_filename(
+    tmp_path: Path,
+) -> None:
+    response = run_minimal_agent("estimate vector search for   ", tmp_path)
+
+    assert response.status == "unsupported_request"
+    assert response.tool_name is None
+    assert response.result is None
+
+
+def test_run_minimal_agent_uses_configured_vector_estimate_token_limit(
+    tmp_path: Path,
+) -> None:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    from internal_ai_process_assistant.config import AppConfig
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    pdf_path = input_dir / "sample.pdf"
+    pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+    _, height = A4
+    pdf.drawString(72, height - 72, "Privacy policy document")
+    pdf.showPage()
+    pdf.save()
+
+    config = AppConfig(
+        embedding_provider="deterministic",
+        openai_api_key=None,
+        openai_embedding_model="text-embedding-3-small",
+        max_embedding_chunks_per_run=20,
+        max_estimated_embedding_tokens_per_run=1,
+    )
+
+    with pytest.raises(ValueError, match="exceeds the limit of 1"):
+        run_minimal_agent(
+            "estimate vector search for sample.pdf",
+            tmp_path,
+            config=config,
+        )

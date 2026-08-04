@@ -32,6 +32,7 @@ INSPECT_EXCEL_PREFIX = "inspect excel "
 INSPECT_PDF_PREFIX = "inspect pdf "
 EXTRACT_PDF_TEXT_PREFIX = "extract pdf text "
 SEARCH_PDF_PREFIX = "search pdf "
+ESTIMATE_PDF_VECTOR_RETRIEVAL_PREFIX = "estimate vector search for "
 SEARCH_PDF_BY_VECTOR_MARKER = " by vector for "
 GENERATE_REPORT_PREFIX = "generate report for "
 
@@ -71,6 +72,14 @@ def run_minimal_agent(
     )
     if pdf_text_extraction_response is not None:
         return pdf_text_extraction_response
+
+    pdf_vector_estimate_response = _try_handle_pdf_vector_estimate(
+        normalized_request,
+        project_root,
+        runtime_config,
+    )
+    if pdf_vector_estimate_response is not None:
+        return pdf_vector_estimate_response
 
     pdf_vector_search_response = _try_handle_pdf_vector_search(
         normalized_request,
@@ -246,6 +255,40 @@ def _try_handle_pdf_text_extraction(
         tool_name="extract_pdf_text",
         result=result,
     )
+
+def _try_handle_pdf_vector_estimate(
+    request: str,
+    project_root: Path,
+    config: AppConfig,
+) -> AgentResponse | None:
+    """Handle explicit PDF vector retrieval estimate requests."""
+    if not request.startswith(ESTIMATE_PDF_VECTOR_RETRIEVAL_PREFIX):
+        return None
+
+    filename = request.removeprefix(ESTIMATE_PDF_VECTOR_RETRIEVAL_PREFIX).strip()
+    if not filename:
+        return AgentResponse(
+            status="unsupported_request",
+            message="PDF vector retrieval estimate requires a filename.",
+        )
+
+    result = execute_tool(
+        tool_name="estimate_pdf_vector_retrieval",
+        arguments={
+            "filename": filename,
+            "max_chunks": config.max_embedding_chunks_per_run,
+            "max_estimated_tokens": config.max_estimated_embedding_tokens_per_run,
+        },
+        project_root=project_root,
+    )
+
+    return AgentResponse(
+        status="completed",
+        message=f"Estimated PDF vector retrieval usage for {filename}.",
+        tool_name="estimate_pdf_vector_retrieval",
+        result=result,
+    )
+
 
 def _try_handle_pdf_vector_search(
     request: str,
