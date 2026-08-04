@@ -204,6 +204,12 @@ Search the demo PDF with local keyword retrieval:
 python -m internal_ai_process_assistant.cli "search pdf sample.pdf for assistant"
 ```
 
+Estimate PDF vector retrieval usage before embedding/search:
+
+```bash
+python -m internal_ai_process_assistant.cli "estimate vector search for sample.pdf"
+```
+
 Search the demo PDF with local deterministic vector retrieval:
 
 ```bash
