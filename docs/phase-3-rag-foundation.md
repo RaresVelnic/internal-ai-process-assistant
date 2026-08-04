@@ -232,26 +232,36 @@ Security decisions:
 - no vector database is used yet;
 - source metadata is returned with each match.
 
-## Current Phase 3 Status
+### Current Phase 3 Status
 
-Phase 3 currently provides a working local retrieval foundation:
+Completed:
 
-- text chunking;
+- document text chunking;
 - PDF text chunking;
-- keyword search over chunks;
-- local PDF retrieval;
-- source-aware retrieval results;
-- CLI demo through the minimal rule-based agent.
+- local keyword search;
+- local PDF keyword retrieval;
+- retrieval citation formatting;
+- deterministic embedding utilities;
+- in-memory vector store;
+- local PDF vector retrieval workflow;
+- embedding provider abstraction;
+- embedding provider factory;
+- OpenAI embedding provider placeholder;
+- embedding usage and cost guardrails;
+- PDF vector retrieval dry-run estimate;
+- PDF vector retrieval estimate tool;
+- minimal agent and CLI integration;
+- README and Phase 3 documentation updates.
 
-This is a deliberate pre-RAG stage. It proves the retrieval pipeline before adding embeddings, vector stores, LLM calls, or generated answers.
+Not implemented yet:
 
-Current validation commands:
-
-```bash
-python -m internal_ai_process_assistant.cli "search pdf sample.pdf for assistant"
-pytest
-ruff check .
-```
+- real OpenAI embedding API calls;
+- real semantic embeddings;
+- persistent vector store;
+- hybrid keyword/vector retrieval;
+- LLM answer generation;
+- LangChain;
+- LangGraph.
 
 ## Completed Step: Retrieval Citation Formatting
 
