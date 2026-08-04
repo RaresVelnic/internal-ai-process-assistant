@@ -471,3 +471,64 @@ Current behavior:
 - `IAPA_EMBEDDING_PROVIDER=openai` can construct an OpenAI provider placeholder when `OPENAI_API_KEY` is set;
 - calling `embed_text()` on the OpenAI provider raises `NotImplementedError`;
 - this prevents accidental paid API usage before the implementation is intentionally enabled.
+
+## Completed Step: PDF Vector Retrieval Estimate CLI
+
+The project now exposes PDF vector retrieval usage estimation through the minimal agent and CLI.
+
+Decision:
+
+- add `estimate_pdf_vector_retrieval` as a registered safe tool;
+- expose the tool through the controlled executor;
+- support the CLI request `estimate vector search for sample.pdf`;
+- reuse the same chunk and token guardrails used by vector retrieval;
+- return a structured estimate before embeddings are generated.
+
+Reason:
+
+- real embedding providers may create paid API usage;
+- users should be able to estimate chunk count, token count, and cost before any embedding run;
+- the estimate path should be available through the same safe tool execution model as the rest of the project;
+- dry-run behavior improves transparency and supports future human-in-the-loop approvals.
+
+Rejected alternatives for this step:
+
+- estimating cost only inside the vector retrieval implementation;
+- requiring a real OpenAI provider before estimating usage;
+- hiding cost estimates from the CLI;
+- allowing vector retrieval to proceed without a visible pre-flight estimate.
+
+Impact:
+
+- the CLI can now show an embedding usage estimate without creating embeddings;
+- guardrails are exercised before retrieval or future API calls;
+- the project has a safer path toward paid embedding providers;
+- the result is structured and easy to display in future API/UI layers;
+- no OpenAI API calls are made.
+
+Supported CLI example:
+
+`python -m internal_ai_process_assistant.cli "estimate vector search for sample.pdf"`
+
+Example result shape:
+
+`status`: `completed`
+
+`tool_name`: `estimate_pdf_vector_retrieval`
+
+`result.filename`: `sample.pdf`
+
+`result.chunk_count`: number of chunks that would be embedded
+
+`result.embedding_model_name`: embedding model used for estimation
+
+`result.estimated_tokens`: estimated input tokens
+
+`result.estimated_cost_usd`: estimated cost as a string
+
+Current demo result:
+
+- filename: `sample.pdf`;
+- chunk count: `2`;
+- estimated tokens: `105`;
+- estimated cost USD: `0.0000021`.
