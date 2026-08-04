@@ -38,6 +38,7 @@ def test_get_embedding_provider_rejects_unknown_provider_defensively() -> None:
         openai_embedding_model="text-embedding-3-small",
         max_embedding_chunks_per_run=20,
         max_estimated_embedding_tokens_per_run=20_000,
+        allow_paid_embedding_calls=False,
     )
 
     with pytest.raises(ValueError, match="Unsupported embedding provider"):

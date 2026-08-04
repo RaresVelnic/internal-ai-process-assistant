@@ -318,6 +318,7 @@ def test_run_minimal_agent_uses_configured_vector_search_chunk_limit(tmp_path: P
         openai_embedding_model="text-embedding-3-small",
         max_embedding_chunks_per_run=1,
         max_estimated_embedding_tokens_per_run=20_000,
+        allow_paid_embedding_calls=False,
     )
 
     with pytest.raises(ValueError, match="exceeds the limit of 1"):
@@ -391,6 +392,7 @@ def test_run_minimal_agent_uses_configured_vector_estimate_token_limit(
         openai_embedding_model="text-embedding-3-small",
         max_embedding_chunks_per_run=20,
         max_estimated_embedding_tokens_per_run=1,
+        allow_paid_embedding_calls=False,
     )
 
     with pytest.raises(ValueError, match="exceeds the limit of 1"):

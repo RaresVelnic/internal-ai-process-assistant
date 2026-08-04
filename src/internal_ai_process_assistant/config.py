@@ -9,6 +9,7 @@ DEFAULT_EMBEDDING_PROVIDER = "deterministic"
 DEFAULT_OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 DEFAULT_MAX_EMBEDDING_CHUNKS_PER_RUN = 20
 DEFAULT_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN = 20_000
+DEFAULT_ALLOW_PAID_EMBEDDING_CALLS = False
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,7 @@ class AppConfig:
     openai_embedding_model: str
     max_embedding_chunks_per_run: int
     max_estimated_embedding_tokens_per_run: int
+    allow_paid_embedding_calls: bool
 
 
 def load_config(environ: dict[str, str] | None = None) -> AppConfig:
@@ -56,6 +58,11 @@ def load_config(environ: dict[str, str] | None = None) -> AppConfig:
             "IAPA_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN",
             DEFAULT_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN,
         ),
+        allow_paid_embedding_calls=_get_bool(
+            environment,
+            "IAPA_ALLOW_PAID_EMBEDDING_CALLS",
+            DEFAULT_ALLOW_PAID_EMBEDDING_CALLS,
+        ),
     )
 
 
@@ -86,3 +93,25 @@ def _get_positive_int(
         raise ValueError(f"{name} must be at least 1")
 
     return value
+
+
+def _get_bool(
+    environment: dict[str, str],
+    name: str,
+    default: bool,
+) -> bool:
+    raw_value = environment.get(name)
+
+    if raw_value is None:
+        return default
+
+    normalized_value = raw_value.strip().lower()
+
+    if normalized_value in {"1", "true", "yes", "y", "on"}:
+        return True
+
+    if normalized_value in {"0", "false", "no", "n", "off"}:
+        return False
+
+    raise ValueError(f"{name} must be a boolean")
+

@@ -1,6 +1,7 @@
 import pytest
 
 from internal_ai_process_assistant.config import (
+    DEFAULT_ALLOW_PAID_EMBEDDING_CALLS,
     DEFAULT_EMBEDDING_PROVIDER,
     DEFAULT_MAX_EMBEDDING_CHUNKS_PER_RUN,
     DEFAULT_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN,
@@ -21,6 +22,8 @@ def test_load_config_uses_safe_defaults() -> None:
         config.max_estimated_embedding_tokens_per_run
         == DEFAULT_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN
     )
+    assert config.allow_paid_embedding_calls is DEFAULT_ALLOW_PAID_EMBEDDING_CALLS
+    assert config.allow_paid_embedding_calls is False
 
 
 def test_load_config_accepts_openai_provider_with_api_key() -> None:
@@ -78,3 +81,28 @@ def test_load_config_rejects_non_integer_guardrail_value() -> None:
 def test_load_config_rejects_non_positive_guardrail_value() -> None:
     with pytest.raises(ValueError, match="IAPA_MAX_EMBEDDING_CHUNKS_PER_RUN must be at least 1"):
         load_config({"IAPA_MAX_EMBEDDING_CHUNKS_PER_RUN": "0"})
+
+def test_load_config_reads_paid_embedding_calls_flag() -> None:
+    config = load_config({"IAPA_ALLOW_PAID_EMBEDDING_CALLS": "true"})
+
+    assert config.allow_paid_embedding_calls is True
+
+
+@pytest.mark.parametrize("value", ["1", "true", "yes", "y", "on"])
+def test_load_config_accepts_true_boolean_values(value: str) -> None:
+    config = load_config({"IAPA_ALLOW_PAID_EMBEDDING_CALLS": value})
+
+    assert config.allow_paid_embedding_calls is True
+
+
+@pytest.mark.parametrize("value", ["0", "false", "no", "n", "off"])
+def test_load_config_accepts_false_boolean_values(value: str) -> None:
+    config = load_config({"IAPA_ALLOW_PAID_EMBEDDING_CALLS": value})
+
+    assert config.allow_paid_embedding_calls is False
+
+
+def test_load_config_rejects_invalid_paid_embedding_calls_flag() -> None:
+    with pytest.raises(ValueError, match="IAPA_ALLOW_PAID_EMBEDDING_CALLS must be a boolean"):
+        load_config({"IAPA_ALLOW_PAID_EMBEDDING_CALLS": "maybe"})
+
