@@ -24,6 +24,7 @@ def get_embedding_provider(config: AppConfig) -> EmbeddingProvider:
         return OpenAIEmbeddingProvider(
             api_key=config.openai_api_key,
             model=config.openai_embedding_model,
+            allow_paid_embedding_calls=config.allow_paid_embedding_calls,
         )
 
     raise ValueError(f"Unsupported embedding provider: {config.embedding_provider}")

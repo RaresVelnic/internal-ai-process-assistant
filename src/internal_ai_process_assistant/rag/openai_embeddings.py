@@ -20,6 +20,7 @@ class OpenAIEmbeddingProvider:
 
     api_key: str
     model: str
+    allow_paid_embedding_calls: bool = False
 
     def __post_init__(self) -> None:
         """Validate provider configuration."""
@@ -36,6 +37,12 @@ class OpenAIEmbeddingProvider:
         """
         if not text.strip():
             raise ValueError("text must not be empty")
+
+        if not self.allow_paid_embedding_calls:
+            raise PermissionError(
+                "Paid embedding calls are disabled. Set "
+                "IAPA_ALLOW_PAID_EMBEDDING_CALLS=true to enable them."
+            )
 
         raise NotImplementedError(
             "OpenAI embedding API calls are not implemented yet."

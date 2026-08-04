@@ -29,6 +29,7 @@ def test_get_embedding_provider_returns_openai_provider_placeholder() -> None:
     assert isinstance(provider, OpenAIEmbeddingProvider)
     assert provider.api_key == "test-key"
     assert provider.model == "text-embedding-3-small"
+    assert provider.allow_paid_embedding_calls is False
 
 
 def test_get_embedding_provider_rejects_unknown_provider_defensively() -> None:
@@ -43,3 +44,18 @@ def test_get_embedding_provider_rejects_unknown_provider_defensively() -> None:
 
     with pytest.raises(ValueError, match="Unsupported embedding provider"):
         get_embedding_provider(config)
+
+def test_get_embedding_provider_passes_paid_call_flag_to_openai_provider() -> None:
+    config = load_config(
+        {
+            "IAPA_EMBEDDING_PROVIDER": "openai",
+            "OPENAI_API_KEY": "test-key",
+            "IAPA_ALLOW_PAID_EMBEDDING_CALLS": "true",
+        }
+    )
+
+    provider = get_embedding_provider(config)
+
+    assert isinstance(provider, OpenAIEmbeddingProvider)
+    assert provider.allow_paid_embedding_calls is True
+
