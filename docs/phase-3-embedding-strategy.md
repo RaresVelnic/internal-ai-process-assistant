@@ -532,3 +532,46 @@ Current demo result:
 - chunk count: `2`;
 - estimated tokens: `105`;
 - estimated cost USD: `0.0000021`.
+
+## Completed Step: Explicit Paid Embedding Call Opt-In
+
+The project now requires an explicit runtime opt-in before future paid embedding API calls can run.
+
+Decision:
+
+- add `IAPA_ALLOW_PAID_EMBEDDING_CALLS`;
+- default the flag to `false`;
+- parse the flag through application config;
+- pass the flag into the OpenAI embedding provider placeholder;
+- block OpenAI `embed_text()` when paid embedding calls are not explicitly allowed.
+
+Reason:
+
+- selecting the OpenAI provider should not be enough to trigger paid usage;
+- API keys can be present in local environments accidentally;
+- paid provider calls should require a separate explicit runtime decision;
+- the future real OpenAI implementation should inherit this safety model;
+- automated tests must remain offline and cost-free.
+
+Rejected alternatives for this step:
+
+- relying only on `OPENAI_API_KEY` presence;
+- relying only on `IAPA_EMBEDDING_PROVIDER=openai`;
+- adding the safety check later after implementing real API calls;
+- allowing provider code to silently proceed toward paid calls.
+
+Impact:
+
+- future OpenAI API calls require two independent opt-ins;
+- default local development remains deterministic and offline;
+- tests verify that paid calls are blocked by default;
+- the OpenAI provider boundary is safer before SDK integration;
+- the project has a clearer privacy and cost-control story for portfolio review.
+
+Current behavior:
+
+- `IAPA_ALLOW_PAID_EMBEDDING_CALLS=false` is the default;
+- OpenAI provider config can still be constructed for tests;
+- calling OpenAI `embed_text()` with paid calls disabled raises `PermissionError`;
+- calling OpenAI `embed_text()` with paid calls enabled still raises `NotImplementedError` because real API calls are not implemented yet;
+- no OpenAI API calls are made.
