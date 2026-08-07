@@ -627,3 +627,57 @@ Smoke test results:
 - with paid calls disabled, OpenAI `embed_text()` is blocked before any API call;
 - with paid calls enabled and a fake injected client, the provider sends normalized text, model name, and `encoding_format="float"`;
 - the fake embedding response is converted into an `EmbeddingVector`.
+
+## Planned Step: Live OpenAI Embedding Smoke Test
+
+The project is technically ready for a very small live OpenAI embedding smoke test, but the test must remain manual and opt-in.
+
+Decision:
+
+- do not run live OpenAI API calls in automated tests;
+- do not require live OpenAI calls for normal development;
+- run live embedding tests only manually;
+- require `IAPA_EMBEDDING_PROVIDER=openai`;
+- require `OPENAI_API_KEY`;
+- require `IAPA_ALLOW_PAID_EMBEDDING_CALLS=true`;
+- run a tiny single-text embedding request first, before using PDF chunks.
+
+Reason:
+
+- OpenAI API usage is billed separately from ChatGPT Plus;
+- live calls introduce network dependency;
+- live calls should never happen accidentally in `pytest`;
+- a tiny manual smoke test validates credentials and SDK integration with minimal cost;
+- the PDF vector retrieval flow already has a dry-run estimator before larger embedding workloads.
+
+Estimated cost:
+
+- the first smoke test should embed only a very short string such as `hello world`;
+- estimated token usage should be tiny;
+- expected cost should be far below one cent;
+- pricing can change, so official OpenAI pricing should be checked before broader usage.
+
+Manual live smoke test prerequisites:
+
+- confirm `git status` is clean;
+- confirm `pytest` and `ruff check .` pass;
+- create or update local `.env` only, never `.env.example`, with a real API key;
+- do not commit `.env`;
+- estimate PDF vector retrieval cost before embedding larger files;
+- keep `IAPA_MAX_EMBEDDING_CHUNKS_PER_RUN` and `IAPA_MAX_ESTIMATED_EMBEDDING_TOKENS_PER_RUN` conservative.
+
+Manual live smoke test environment:
+
+- `IAPA_EMBEDDING_PROVIDER=openai`;
+- `OPENAI_API_KEY=<real local key>`;
+- `IAPA_OPENAI_EMBEDDING_MODEL=text-embedding-3-small`;
+- `IAPA_ALLOW_PAID_EMBEDDING_CALLS=true`.
+
+Safety checklist:
+
+- `.env` is ignored by Git;
+- API key is never printed;
+- API key is never committed;
+- live smoke test uses one short input first;
+- automated tests continue to use fake clients or deterministic embeddings;
+- paid provider usage remains explicit and reversible.
