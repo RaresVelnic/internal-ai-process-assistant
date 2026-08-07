@@ -178,3 +178,33 @@ def test_estimate_pdf_vector_retrieval_usage_applies_token_guardrail(
             max_estimated_tokens=1,
         )
 
+
+
+class RecordingEmbeddingProvider:
+    def __init__(self) -> None:
+        self.texts: list[str] = []
+
+    def embed_text(self, text: str):
+        from internal_ai_process_assistant.rag.embeddings import EmbeddingVector
+
+        self.texts.append(text)
+        return EmbeddingVector(values=(1.0, 0.0))
+
+
+def test_retrieve_pdf_chunks_by_vector_uses_injected_embedding_provider(
+    sample_pdf_in_input: str,
+) -> None:
+    provider = RecordingEmbeddingProvider()
+
+    result = retrieve_pdf_chunks_by_vector(
+        filename=sample_pdf_in_input,
+        query="assistant",
+        project_root=Path.cwd(),
+        top_k=1,
+        provider=provider,
+    )
+
+    assert result.match_count == 1
+    assert len(provider.texts) >= 2
+    assert provider.texts[-1] == "assistant"
+    assert any("Internal AI Process Assistant" in text for text in provider.texts)
