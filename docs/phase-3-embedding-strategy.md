@@ -575,3 +575,55 @@ Current behavior:
 - calling OpenAI `embed_text()` with paid calls disabled raises `PermissionError`;
 - calling OpenAI `embed_text()` with paid calls enabled still raises `NotImplementedError` because real API calls are not implemented yet;
 - no OpenAI API calls are made.
+
+## Completed Step: OpenAI Embedding Provider Implementation
+
+The project now has a real OpenAI embedding provider implementation behind the existing provider interface.
+
+Decision:
+
+- add the official OpenAI Python SDK as a pinned dependency;
+- implement `OpenAIEmbeddingProvider` using `client.embeddings.create`;
+- request embeddings with `encoding_format="float"`;
+- convert the OpenAI embedding response into the project-local `EmbeddingVector`;
+- keep the OpenAI client injectable for tests;
+- keep paid calls blocked unless `IAPA_ALLOW_PAID_EMBEDDING_CALLS=true`.
+
+Reason:
+
+- the project needs real semantic embedding support behind the same interface as deterministic embeddings;
+- the OpenAI provider should be isolated inside one module;
+- tests must remain offline and cost-free;
+- client injection allows reliable unit tests without network access;
+- explicit paid-call opt-in protects against accidental API usage.
+
+Rejected alternatives for this step:
+
+- calling OpenAI directly from retrieval code;
+- using the OpenAI client globally;
+- allowing tests to call the real API;
+- relying only on `OPENAI_API_KEY` as the safety mechanism;
+- returning raw OpenAI SDK objects instead of project-local `EmbeddingVector` objects.
+
+Impact:
+
+- the codebase can now create real OpenAI embeddings when explicitly configured;
+- deterministic embeddings remain the default;
+- OpenAI calls still require both provider selection and paid-call opt-in;
+- tests verify the provider using a fake injected client;
+- the vector retrieval pipeline can later use real semantic embeddings without changing its public result shape.
+
+Current behavior:
+
+- `IAPA_EMBEDDING_PROVIDER=deterministic` remains the safe default;
+- `IAPA_EMBEDDING_PROVIDER=openai` selects the OpenAI provider;
+- `OPENAI_API_KEY` is required for OpenAI provider configuration;
+- `IAPA_ALLOW_PAID_EMBEDDING_CALLS=false` blocks `embed_text()` with `PermissionError`;
+- `IAPA_ALLOW_PAID_EMBEDDING_CALLS=true` allows the provider to call its configured client;
+- tests use an injected fake client and make no network calls.
+
+Smoke test results:
+
+- with paid calls disabled, OpenAI `embed_text()` is blocked before any API call;
+- with paid calls enabled and a fake injected client, the provider sends normalized text, model name, and `encoding_format="float"`;
+- the fake embedding response is converted into an `EmbeddingVector`.
